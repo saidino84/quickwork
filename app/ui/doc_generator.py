@@ -64,6 +64,8 @@ class DocGenerator(UserControl):
         DataStore.add_to_control_reference('DocGenerator',self)
     
     def build(self):
+        self._progress_value=0
+        self._loaderuix=self._loader()
         self.instace()
         _input_with_label = Container(
                     ),
@@ -133,8 +135,8 @@ class DocGenerator(UserControl):
             x_init+= distance
         return __path
     
-    def _loader(self, ):
-        return ProgressBar( bgcolor=colors.RED_ACCENT,value=0)
+    def _loader(self,  ):
+        return ProgressBar( bgcolor=colors.RED_ACCENT,value=self._progress_value)
         
     def _setup_left_box(self):
         return Column(
@@ -145,7 +147,7 @@ class DocGenerator(UserControl):
             # opacity=0,
                 margin=margin.symmetric(horizontal=5),
                 height=2,
-                content=self._loader( ),
+                content=self._loaderuix,
                               ),
                     self._input(label='DATA'),
                     self._input(label='NUMERO'),
@@ -173,7 +175,8 @@ class DocGenerator(UserControl):
             ),style=ButtonStyle(shape={'':RoundedRectangleBorder(radius=2)}),
             
             # on_click=lambda x:ProductRepository()._read_file('assets/mercearia.csv')
-            on_click=lambda x:asyncio.run(ApiTester(loader=self._loader(value=0.25)).run_compilation(x))
+            # on_click=lambda x:asyncio.run(ApiTester(loader_value=self._progress_value,loader=self._loaderuix).run_compilation(x))
+            on_click=lambda x:asyncio.run(ApiTester(loader_value=self._progress_value,loader=self._loaderuix).run_compilation(x))
             ),
         )
     
@@ -188,7 +191,7 @@ class DocGenerator(UserControl):
     def _datatable_list(self):
 
         return Container(
-            width=600,
+            width=670,
              height=750,
             content=DataTable(
                 
@@ -199,10 +202,12 @@ class DocGenerator(UserControl):
             data_row_color=colors.WHITE,
 
             columns=[
-                    DataColumn(label=Text('CODIGO')),
-                    DataColumn(label=Text('Barcode')),
-                    DataColumn(label=Text('Description')),
-                    DataColumn(label=Text('Price')),
+                    DataColumn(label=Text('Date')),
+                    DataColumn(label=Text('Numero')),
+                    DataColumn(label=Text('Fornecedor')),
+                    DataColumn(label=Text('Entrada')),
+                    DataColumn(label=Text('Finalizacao')),
+                    DataColumn(label=Text('Sujit')),
                  ],
             # rows = self.__get_produts(10)
             # rows = self._get_products_from_doc(products=ProductRepository()._read_file('assets/mercearia.csv'))
