@@ -5,6 +5,7 @@ from flet import *
 
 from app import DataStore
 from flet.canvas import Canvas,Line,Circle,Path
+from app.db.models.invoice import Invoice
 
 from app.db.models.product import ProductModel
 from app.repository.product_repository import ProductRepository
@@ -24,8 +25,9 @@ class DocGenerator(UserControl):
                               ),
         return progress_state
 
-    def _input(self,label:str=None):
+    def _input(self,label:str=None,width=None):
         return Container(
+            width=width,
             padding=padding.all(5),
             margin=margin.symmetric(horizontal=5),
             height=70, bgcolor=colors.WHITE,
@@ -49,7 +51,7 @@ class DocGenerator(UserControl):
             border_radius=BorderRadius(bottom_right=2,bottom_left=2,top_left=0,top_right=0),
             content=Column(
                     controls=[
-                        Text('Procurar O Producto ', style=TextStyle(color=colors.RED,)),
+                        Text('Procurar Transferencia ', style=TextStyle(color=colors.RED,)),
                         TextField(
                 height=32,content_padding=5,cursor_color='white', bgcolor=colors.BLACK12,
                     text_style=TextStyle(weight=FontWeight.BOLD,color=colors.WHITE
@@ -78,12 +80,15 @@ class DocGenerator(UserControl):
                 border=Border(bottom=BorderSide(width=30,color=colors.RED_400),left=BorderSide(width=2,color=colors.RED_400),right=BorderSide(width=2,color=colors.RED_400)),
                 # padding=padding.all(8),
                 content=Column(
+                    alignment=MainAxisAlignment.START,
+                    horizontal_alignment=CrossAxisAlignment.START,
                     controls=[
                         # LEFT BOX
                         self._setup_left_box(),
                     ],
                 ),
             ),
+                        # MIDDLE BOX
                         self._setup_main_box()
                 ]
             )
@@ -135,7 +140,7 @@ class DocGenerator(UserControl):
             x_init+= distance
         return __path
     
-    def _loader(self,  ):
+    def _loader(self  ):
         return ProgressBar( bgcolor=colors.RED_ACCENT,value=self._progress_value)
         
     def _setup_left_box(self):
@@ -152,11 +157,15 @@ class DocGenerator(UserControl):
                     self._input(label='DATA'),
                     self._input(label='NUMERO'),
                     self._input(label='FORNECEDOR'),
-                    self._input(label='FINALIZADA'),
+                    Row( controls=[
+                        self._input(label='ENTRADA',width=80),
+                        self._input(label='FINALIZADA',width=100),
+                        ]),
                     self._btn_go(),
                     self._graphic(),
             ]
         )
+    
     def _btn_go(self):
         return Container(
             alignment=alignment.center,
@@ -169,15 +178,15 @@ class DocGenerator(UserControl):
             alignment=MainAxisAlignment.CENTER,
             controls=[
             # Icon(name=icons.ADD_ROUNDED,size=12),
-            Text("GERAR RELATORIO" , style=TextStyle(weight=FontWeight.BOLD,color=colors.BLACK87,
+            Text("LER O EXCEL FILE" , style=TextStyle(weight=FontWeight.BOLD,color=colors.BLACK87,
                                                   ),),
             ]
             ),style=ButtonStyle(shape={'':RoundedRectangleBorder(radius=2)}),
             
             # on_click=lambda x:ProductRepository()._read_file('assets/mercearia.csv')
             # on_click=lambda x:asyncio.run(ApiTester(loader_value=self._progress_value,loader=self._loaderuix).run_compilation(x))
-            on_click=lambda x:asyncio.run(ApiTester(loader_value=self._progress_value,loader=self._loaderuix).run_compilation(x))
-            ),
+            on_click=lambda x:asyncio.run(ApiTester(loader_value=self._progress_value,loader=self._loaderuix,datatable=DocGenerator._datatable_list).run_compilation(x))
+            )
         )
     
 
@@ -185,37 +194,42 @@ class DocGenerator(UserControl):
     def _setup_main_box(self):
         return Column(
             controls=[
-                self._datatable_list()
+                Container(
+                    width=770,
+                    height=300,
+                    content=ListView(
+            
+                    controls=[DocGenerator._datatable_list],
+                    auto_scroll=True,
+                    ),
+                    ),
+                    Container(
+                        alignment=alignment.center,
+                        border_radius=2,
+                        # padding=padding.all(5),
+                        content=ElevatedButton(
+                        bgcolor =colors.WHITE,#"#081d33",
+                        color=colors.RED_ACCENT,
+                        content=Row(
+                        alignment=MainAxisAlignment.CENTER,
+                        controls=[
+                        # Icon(name=icons.ADD_ROUNDED,size=12),
+                        Text("GERAR RELATORIO" , style=TextStyle(weight=FontWeight.BOLD,color=colors.BLACK87,
+                                                            ),),
+                        ]
+                        ),style=ButtonStyle(shape={'':RoundedRectangleBorder(radius=2)}),
+                        
+                        on_click=lambda x:ProductRepository()._read_file('assets/mercearia.csv')
+                        )
+                    )
+                    
             ]
-        )
-    def _datatable_list(self):
-
-        return Container(
-            width=670,
-             height=750,
-            content=DataTable(
-                
+        ) 
+   
+ 
         
-            # bgcolor=colors.RED_ACCENT,
-           
-            heading_row_color=colors.RED_ACCENT,
-            data_row_color=colors.WHITE,
-
-            columns=[
-                    DataColumn(label=Text('Date')),
-                    DataColumn(label=Text('Numero')),
-                    DataColumn(label=Text('Fornecedor')),
-                    DataColumn(label=Text('Entrada')),
-                    DataColumn(label=Text('Finalizacao')),
-                    DataColumn(label=Text('Sujit')),
-                 ],
-            # rows = self.__get_produts(10)
-            # rows = self._get_products_from_doc(products=ProductRepository()._read_file('assets/mercearia.csv'))
-                
-             )
-        )
     
-    def _get_row_item(self,product:ProductModel)->DataRow:
+    def _get_product_row_item(self,product:ProductModel)->DataRow:
         return DataRow(
             color=colors.BLACK,
             cells=[
@@ -223,6 +237,19 @@ class DocGenerator(UserControl):
                 DataCell(content=Text(f"{product.barcode}")),
                 DataCell(content=Text(f"{product.name}")),
                 DataCell(content=Text(f"{product.price}")) 
+            ]
+        )
+    @staticmethod
+    def _get_invoice_row_item(invoice:Invoice)->DataRow:
+        return DataRow(
+            color=colors.BLACK,
+            cells=[
+                DataCell(content=Text(f"{invoice.date}")),
+                DataCell(content=Text(f"{invoice.number}")),
+                DataCell(content=Text(f"{invoice.supplier}")),
+                DataCell(content=Text(f"{invoice.entry_done}")),
+                DataCell(content=Text(f"{invoice.has_finalized}")),
+                DataCell(content=Text(f"{invoice.sujit}")) 
             ]
         )
     def __get_produts(self,count:int) -> list[DataRow]:
@@ -238,9 +265,31 @@ class DocGenerator(UserControl):
                     price=randint(251,365)
                 )
             )
-        return  list(map(lambda item:self._get_row_item(item),_products))
+        return  list(map(lambda item:self._get_product_row_item(item),_products))
     
     def _get_products_from_doc(self,products:list[ProductModel]) ->list[DataRow]:
         '''getting data from excel sheet'''
         
-        return list(map(lambda item:self._get_row_item(item),products))
+        return list(map(lambda item:self._get_product_row_item(item),products))
+    @staticmethod
+    def _get_invoices_from_doc(invoices:list[Invoice]) ->list[DataRow]:
+        '''getting data from excel sheet'''
+        
+        return list(map(lambda item:DocGenerator._get_invoice_row_item(item),invoices))
+    _datatable_list=DataTable(
+            heading_row_color=colors.RED_ACCENT,
+            data_row_color=colors.WHITE,
+            show_checkbox_column=True,
+            columns=[
+                    DataColumn(label=Text('Date')),
+                    DataColumn(label=Text('Numero')),
+                    DataColumn(label=Text('Fornecedor')),
+                    DataColumn(label=Text('Entrada')),
+                    DataColumn(label=Text('Finalizacao')),
+                    DataColumn(label=Text('Sujit')),
+                 ],
+            # rows = self.__get_produts(10)
+            # rows = self._get_products_from_doc(products=ProductRepository()._read_file('assets/mercearia.csv'))
+            rows = _get_invoices_from_doc(invoices=ApiTester().invoices)
+                
+             )
