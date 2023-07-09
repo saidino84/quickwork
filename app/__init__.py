@@ -1,3 +1,6 @@
+from enum import Enum
+
+
 global control_reference
 control_reference={}
 dados=[]
@@ -16,3 +19,8 @@ class DataStore:
     @staticmethod
     def get_control_refetence():
         return DataStore.control_reference
+
+class State():
+    
+    def get_all():
+        ...
