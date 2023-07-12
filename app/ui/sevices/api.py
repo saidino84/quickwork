@@ -64,7 +64,8 @@ class ApiTester:
     @staticmethod
     def _get_invoice_row_item(invoice:Invoice)->DataRow:
         return DataRow(
-            color=colors.BLACK,
+            color=colors.WHITE,
+            on_select_changed=lambda x:print(invoice.number),
             cells=[
                 DataCell(content=Text(f"{invoice.date}")),
                 DataCell(content=Text(f"{invoice.number}")),

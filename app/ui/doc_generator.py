@@ -172,8 +172,8 @@ class DocGenerator(UserControl):
             border_radius=2,
             padding=padding.all(5),
             content=ElevatedButton(
-            bgcolor =colors.WHITE,#"#081d33",
-            color=colors.RED_ACCENT,
+            bgcolor =colors.RED_ACCENT,#"#081d33",
+            color=colors.WHITE,#colors.RED_ACCENT,
             content=Row(
             alignment=MainAxisAlignment.CENTER,
             controls=[
@@ -199,7 +199,12 @@ class DocGenerator(UserControl):
                     height=300,
                     content=ListView(
             
-                    controls=[DocGenerator._datatable_list],
+                    controls=[
+                        
+                        
+                        DocGenerator._datatable_list
+                        
+                        ],
                     auto_scroll=True,
                     ),
                     ),
