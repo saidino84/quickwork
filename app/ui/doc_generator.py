@@ -9,6 +9,7 @@ from app.db.models.invoice import Invoice
 
 from app.db.models.product import ProductModel
 from app.repository.product_repository import ProductRepository
+from app.ui.header import HeaderAction
 from app.ui.sevices.api import ApiTester
 
 class DocGenerator(UserControl):
@@ -69,11 +70,12 @@ class DocGenerator(UserControl):
         self._progress_value=0
         self._loaderuix=self._loader()
         self.instace()
-        _input_with_label = Container(
-                    ),
+         
         return Container(
             
             content=Row(
+            alignment=MainAxisAlignment.START, 
+            vertical_alignment=CrossAxisAlignment.START,
                 controls=[
                     Container(
                  width=self.size[0]/3,bgcolor=colors.WHITE38,border_radius=8,
@@ -89,6 +91,7 @@ class DocGenerator(UserControl):
                 ),
             ),
                         # MIDDLE BOX
+                        
                         self._setup_main_box()
                 ]
             )
@@ -193,7 +196,9 @@ class DocGenerator(UserControl):
     #  MAIN BOX SETUP
     def _setup_main_box(self):
         return Column(
+            alignment=MainAxisAlignment.START, 
             controls=[
+                HeaderAction(),
                 Container(
                     width=770,
                     height=300,

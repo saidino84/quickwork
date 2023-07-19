@@ -4,7 +4,7 @@ from pprint import pprint
 import pandas as pd
 from app.db.models.invoice import Invoice
 from flet import (DataCell,DataColumn,Text,DataRow,colors,Icon,icons)
-
+ 
 class ApiTester:
     def __init__(self,loader_value=None,loader=None,datatable=None) -> None:
         self.loader_value=loader_value
@@ -30,7 +30,6 @@ class ApiTester:
         self.loader.update()
         xlx = pd.ExcelFile(file)
         data_frame= pd.read_excel(xlx,sheet_name="invoices",skiprows=[0,1])
-         
         invoices =[Invoice(id=index,
                     date=row['DATA'],
                     number=row['NUMERO'],
@@ -58,6 +57,7 @@ class ApiTester:
             async with session.get('https://jsonplaceholder.typicode.com/posts/2') as response:
                 res = await response.json()
                 pprint(res)
+                
         self.loader_value=0
         self.loader.value=self.loader_value
         self.loader.update()
@@ -81,3 +81,4 @@ class ApiTester:
         return list(map(lambda item:ApiTester._get_invoice_row_item(item),invoices))
         
     #         )
+     
