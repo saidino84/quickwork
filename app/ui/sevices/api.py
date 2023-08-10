@@ -77,8 +77,7 @@ class ApiTester:
         )
     def _get_invoices_from_doc(invoices:list[Invoice]) ->list[DataRow]:
         '''getting data from excel sheet'''
-        
         return list(map(lambda item:ApiTester._get_invoice_row_item(item),invoices))
         
-    #         )
+     
      

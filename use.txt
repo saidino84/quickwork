@@ -1,2 +1,3 @@
 https://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x-oauth-basic@github.com/saidino84/quickwork.git
 https://github.com/saidino84/quickwork.git
+https://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x-oauth-basic@github.com//saidino84/pyflet_report.git
