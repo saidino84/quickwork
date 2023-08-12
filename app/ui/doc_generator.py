@@ -284,8 +284,8 @@ class DocGenerator(UserControl):
     @staticmethod
     def _get_invoices_from_doc(invoices:list[Invoice]) ->list[DataRow]:
         '''getting data from excel sheet'''
-        
         return list(map(lambda item:DocGenerator._get_invoice_row_item(item),invoices))
+    
     _datatable_list=DataTable(
             heading_row_color=colors.RED_ACCENT,
             data_row_color=colors.WHITE,
