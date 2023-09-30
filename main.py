@@ -24,6 +24,9 @@ def main(page:Page):
     page.window_resizable=True
     page.bgcolor=colors.WHITE70
     page.padding=0
+    page.window_title_bar_buttons_hidden=True
+    page.window_title_bar_hidden=False
+    page.update()
     _cv=cv.Canvas(
         [cv.Rect(20,50,200,250,paint=Paint(style=PaintingStyle.STROKE,color=colors.RED,),),]
     )
@@ -61,8 +64,8 @@ def main(page:Page):
         ]
     )
 
-    page.update()
     page.add(Container(content=_root))
+    page.update()
 app(target=main,port=5555,
     #view=WEB_BROWSER, web_renderer="html"
     )

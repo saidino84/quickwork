@@ -1,4 +1,5 @@
 from random import randint
+from datetime import date
 
 import asyncio
 from flet import *
@@ -11,57 +12,15 @@ from app.db.models.product import ProductModel
 from app.repository.product_repository import ProductRepository
 from app.ui.header import HeaderAction
 from app.ui.sevices.api import ApiTester
+from settings import Utils
+from app.ui.sevices.openeditor import start_app
 
 class DocGenerator(UserControl):
     def __init__(self,size=None,**kw):
         super().__init__(**kw)
         self.size :list=size
     
-    def _loader_state(self):
-        progress_state=Container(
-            opacity=0,
-            margin=margin.symmetric(horizontal=5),
-            height=2,
-                content=ProgressBar(value=True,bgcolor=colors.RED_ACCENT,color=colors.WHITE),
-                              ),
-        return progress_state
-
-    def _input(self,label:str=None,width=None):
-        return Container(
-            width=width,
-            padding=padding.all(5),
-            margin=margin.symmetric(horizontal=5),
-            height=70, bgcolor=colors.WHITE,
-                            border_radius=BorderRadius(bottom_right=2,bottom_left=2,top_left=0,top_right=0) ,
-                         content=Column(controls=[
-                             Text(f'{label} ',style=TextStyle(color=colors.BLACK),color=colors.BLACK87 ),
-                             TextField(
-                            height=32,content_padding=5,cursor_color='white', bgcolor=colors.BLACK12,
-                             text_style=TextStyle(weight=FontWeight.BOLD,color=colors.RED_ACCENT,
-                                                  ),border_color=colors.TRANSPARENT,
-                            
-                            )
-                         ])
-                         )
-    def _search_input(self):
-         return Container(
-             height=70,
-            # margin=margin.all(8),
-            padding=padding.all(5),
-            bgcolor=colors.RED_ACCENT,
-            border_radius=BorderRadius(bottom_right=2,bottom_left=2,top_left=0,top_right=0),
-            content=Column(
-                    controls=[
-                        Text('Procurar Transferencia ', style=TextStyle(color=colors.RED,)),
-                        TextField(
-                height=32,content_padding=5,cursor_color='white', bgcolor=colors.BLACK12,
-                    text_style=TextStyle(weight=FontWeight.BOLD,color=colors.WHITE
-                                        ),border_color=colors.RED_ACCENT,
-                ),
-                    ]
-            ),
-             
-         )
+    
     
     def instace(self):
         DataStore.add_to_control_reference('DocGenerator',self)
@@ -86,7 +45,7 @@ class DocGenerator(UserControl):
                     horizontal_alignment=CrossAxisAlignment.START,
                     controls=[
                         # LEFT BOX
-                        self._setup_left_box(),
+                        self._setup_left_box(width=self.size[0]/3),
                     ],
                 ),
             ),
@@ -98,78 +57,173 @@ class DocGenerator(UserControl):
 
 
         )
-    def _graphic(self):
-        cv_height=190
-        _line_painter=Paint(color=colors.RED,
-            stroke_width=1,
-            style=PaintingStyle.STROKE,)
-        _lines=Line(
-            25,125,85,65,_line_painter,
-        )
-        _ctx=Canvas(
-            height=cv_height,
-            width=self.size[0]/3,
-            
-            shapes=[
-                # _lines,
-            ],
-            
-        )
-        _graph_lines=self.draw_lines(dada=[0,80,35,115,70,60],height=cv_height,width=self.size[0]/3,)
-        _ctx.shapes.append(_graph_lines)
+    def _loader_state(self):
+        progress_state=Container(
+            opacity=0,
+            margin=margin.symmetric(horizontal=5),
+            height=2,
+                content=ProgressBar(value=True,bgcolor=colors.RED_ACCENT,color=colors.WHITE),
+                              ),
+        return progress_state
+
+    def _input(self,label:str=None,width=None,value=None):
         return Container(
-            margin=margin.all(5),
-            height=100,
-            bgcolor='#17043A',
-            border=Border(),
-            # content=_ctx,
-            content=Image('assets/plotted.png')
-        )
-    def draw_lines(self,dada:list,width:int,height:int):
-        ctx_h=height-8
-        distance=width/len(dada)
-        __path=Path(elements=[
-            # Path.LineTo()
-        ])
-        _paint=Paint(color=colors.AMBER,stroke_width=3,#distance*0.4,
-                     style=PaintingStyle.STROKE)
-        __path.paint=_paint
-        x_init=5
-        # _move=Path.MoveTo(x_init+20,ctx_h)    
-        for y in  dada:
-            # __path.elements.append(_move)
-            line=Path.LineTo(x_init+20,ctx_h-y,type='lineto')
-            __path.elements.append(line)
-            x_init+= distance
-        return __path
+            width=width,
+            padding=padding.all(5),
+            margin=margin.symmetric(horizontal=5),
+            height=70, bgcolor=colors.WHITE,
+                            border_radius=BorderRadius(bottom_right=2,bottom_left=2,top_left=0,top_right=0) ,
+                         content=Column(controls=[
+                             Text(f'{label} ',style=TextStyle(color=colors.BLACK),color=colors.BLACK87 ),
+                             TextField(value=value,
+                            height=32,content_padding=5,cursor_color='white', bgcolor=colors.BLACK12,
+                             text_style=TextStyle(weight=FontWeight.BOLD,color=colors.RED_ACCENT,
+                                                  ),border_color=colors.TRANSPARENT,
+                            
+                            )
+                         ])
+                         )
     
-    def _loader(self  ):
-        return ProgressBar( bgcolor=colors.RED_ACCENT,value=self._progress_value)
-        
-    def _setup_left_box(self):
-        return Column(
-            controls=[
-                    self._search_input(), 
+    def _dropdown_input(self,label='',width=None):
+        return Container(
+            width=width,
+            padding=padding.all(5),
+            margin=margin.symmetric(horizontal=5),
+            height=70, bgcolor=colors.WHITE,
+                            border_radius=BorderRadius(bottom_right=2,bottom_left=2,top_left=0,top_right=0) ,
+                         content=Column(controls=[
+                             Text(f'{label} ',style=TextStyle(color=colors.BLACK),color=colors.BLACK87 ),
+                             Container(
+                                bgcolor=colors.BLACK12,
+                                # bgcolor=colors.RED_ACCENT,
+                                # padding=padding.only(bottom=8),
+                                content=Dropdown(
+                                # ref=controller,
+                                content_padding=8,
+                            height=30,
+                            value=Utils.get_providers()[0],
+                            filled=False,
+                            border_color='transparent',
+                            bgcolor=colors.BLACK12,
+                            text_size=12,
+                            color=colors.RED_ACCENT,text_style=TextStyle(18,weight=FontWeight.W_600),
+                            options=
+                                    list(map(lambda item:dropdown.Option(item),Utils.get_providers())),
+                        ))
+                         ])
+                         )
+    def _search_input(self):
+         return Container(
+             height=70,
+            # margin=margin.all(8),
+            padding=padding.all(5),
+            bgcolor=colors.RED_ACCENT,
+            border_radius=BorderRadius(bottom_right=2,bottom_left=2,top_left=0,top_right=0),
+            content=Column(
+                    controls=[
+                        Text('Procurar Transferencia ', style=TextStyle(color=colors.RED,)),
+                        TextField(
+                height=32,content_padding=5,cursor_color='white', bgcolor=colors.BLACK12,
+                    text_style=TextStyle(weight=FontWeight.BOLD,color=colors.WHITE
+                                        ),border_color=colors.RED_ACCENT,
+                ),
+                    ]
+            ),
+             
+         )
+    
+    def _setup_left_box(self,width):
+        return Container(
+            content=Column(
+                controls=[
+                    # self._search_input(), 
                     # self._loader_state(),
                     Container(
+            #  height=20,
+            width=width,
+            # margin=margin.all(8),
+            padding=padding.all(5),
+            bgcolor=colors.RED_ACCENT,
+            border_radius=BorderRadius(bottom_right=2,bottom_left=2,top_left=0,top_right=0),
+            content=Text('COMPARAÇÃO DE PREÇOS',color=colors.WHITE,style=TextStyle(size=8,
+                    weight=FontWeight.W_900,color=colors.WHITE,
+                                                                ))),
+                    Container(
             # opacity=0,
+            border_radius=border_radius.all(8),
                 margin=margin.symmetric(horizontal=5),
-                height=2,
+                height=10,
                 content=self._loaderuix,
                               ),
-                    self._input(label='DATA'),
-                    self._input(label='NUMERO'),
-                    self._input(label='FORNECEDOR'),
+            #inputs
+            Container(
+                height=200,
+                content=ListView(
+            controls=[
+                Column(
+            # height=350,
+            auto_scroll=True,
+            controls=[
+                    self._dropdown_input(label='FORNECEDOR'),
                     Row( controls=[
-                        self._input(label='ENTRADA',width=80),
-                        self._input(label='FINALIZADA',width=100),
+                        self._input(label='DATA',width=(width/2)-20,value=date.today().strftime("%d/%m/%Y")),
+                        self._input(label='INVOICE',width=(width/2)-16),
                         ]),
-                    self._btn_go(),
-                    self._graphic(),
+                    self._input(label='DESCRIPTION',),
+                    self._input(label='BARCODE'),
+                    Row( controls=[
+                        self._input(label='OLD COST',width=(width/2)-20),
+                        self._input(label='NEW COST',width=(width/2)-16),
+                        ]),
             ]
+        )])),#container #inputs
+                    self._btn_go(label="S A V E"),
+            Container(
+                margin=margin.symmetric(horizontal=5,vertical=12),
+                bgcolor=colors.WHITE24,
+                gradient=LinearGradient(
+                        colors=[colors.BLACK26,colors.WHITE,colors.BLACK]
+                ),
+                width=width,
+                padding=8,
+                alignment=Alignment(5,5),
+                content=Text('Calculo de Iva')
+
+
+            ),
+            ListTile(width=width,
+                     on_click=lambda x:asyncio.run(start_app(x)),
+                     title=Row(
+                alignment=MainAxisAlignment.SPACE_BETWEEN,
+                
+                controls=[
+                Text("Backers Cream Crackers  Crisp Crackers 200g".split('  ')[0],max_lines=2,overflow=TextOverflow.FADE,size=12),
+                Icon(icons.ARROW_CIRCLE_UP,color=colors.RED_ACCENT),
+                Container(width=20),
+                ]),
+                     subtitle=Column(
+                                    run_spacing=2,
+                                    spacing=2,
+                                    controls=[
+                                    self.section('Barcode:',value="8745852425"),
+                                    self.section('Old price:',value="87.25"),
+                                    self.section('New Price:',value="175.25"),
+                                    ]),),
+                    self._graphic(),
+
+                ])
         )
-    
-    def _btn_go(self):
+    def section(self,section,value=""):
+        return Row(
+            alignment=MainAxisAlignment.SPACE_BETWEEN,
+            # vertical_alignment=CrossAxisAlignment.START,
+            controls=[
+                Text(f'{section}'),
+                Text(f'{value}',style=TextStyle(weight=FontWeight.BOLD),color="#0B4B8F"),
+                      ]
+        )
+
+    def _btn_go(self,label='BOTAO'):
         return Container(
             alignment=alignment.center,
             border_radius=2,
@@ -181,7 +235,7 @@ class DocGenerator(UserControl):
             alignment=MainAxisAlignment.CENTER,
             controls=[
             # Icon(name=icons.ADD_ROUNDED,size=12),
-            Text("LER O EXCEL FILE" , style=TextStyle(weight=FontWeight.BOLD,color=colors.BLACK87,
+            Text(label , style=TextStyle(weight=FontWeight.BOLD,color=colors.BLACK87,
                                                   ),),
             ]
             ),style=ButtonStyle(shape={'':RoundedRectangleBorder(radius=2)}),
@@ -207,7 +261,33 @@ class DocGenerator(UserControl):
                     controls=[
                         
                         
-                        DocGenerator._datatable_list
+                        DocGenerator._datatable_list,
+                        Container(height=32,bgcolor=colors.AMBER_100,content=Row(
+                            controls=[
+                                Text('#'),
+                                Text('Barcode'),
+                                Text('Description'),
+                                Text('Old Price'),
+                                Text('New Price'),
+                                 
+                            ],
+                        )),
+                        GridView(
+                            expand=1,
+                            runs_count=5,
+                            max_extent=100,
+                            child_aspect_ratio=2.5,
+                            spacing=5,run_spacing=5,
+                            controls=[
+                            Text('#'),
+                                Container(
+                                    height=10,width=10,bgcolor=colors.RED,
+                                    content=Text('Barcode'),),
+                                Text('Description'),
+                                Text('Old Price'),
+                                Text('New Price')
+                        ])
+
                         
                         ],
                     auto_scroll=True,
@@ -235,7 +315,56 @@ class DocGenerator(UserControl):
                     
             ]
         ) 
-   
+    def _graphic(self):
+        cv_height=190
+        _line_painter=Paint(color=colors.RED,
+            stroke_width=1,
+            style=PaintingStyle.STROKE,)
+        _lines=Line(
+            25,125,85,65,_line_painter,
+        )
+        _ctx=Canvas(
+            height=cv_height,
+            width=self.size[0]/3,
+            
+            shapes=[
+                # _lines,
+            ],
+            
+        )
+        _graph_lines=self.draw_lines(dada=[0,80,35,115,70,60],height=cv_height,width=self.size[0]/3,)
+        _ctx.shapes.append(_graph_lines)
+        return Container(
+            margin=margin.all(5),
+            height=100,
+            bgcolor='#17043A',
+            # gradient=RadialGradient(center=Alignment(3.25,-1.25),radius=1.4,
+            # colors=['#D4430A','#0DC6FF', ]),
+            border=Border(),
+            # content=_ctx,
+            content=Image('assets/plotted.png')
+        )
+    def draw_lines(self,dada:list,width:int,height:int):
+        ctx_h=height-8
+        distance=width/len(dada)
+        __path=Path(elements=[
+            # Path.LineTo()
+        ])
+        _paint=Paint(color=colors.AMBER,stroke_width=3,#distance*0.4,
+                     style=PaintingStyle.STROKE)
+        __path.paint=_paint
+        x_init=5
+        # _move=Path.MoveTo(x_init+20,ctx_h)    
+        for y in  dada:
+            # __path.elements.append(_move)
+            line=Path.LineTo(x_init+20,ctx_h-y,type='lineto')
+            __path.elements.append(line)
+            x_init+= distance
+        return __path
+    
+    def _loader(self  ):
+        return ProgressBar( bgcolor=colors.RED_ACCENT,value=self._progress_value)
+       
  
         
     
