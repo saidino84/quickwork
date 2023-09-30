@@ -1,3 +1,17 @@
+# REGISTO DE COMPARAÇÃO DE PREÇOS
+>Main ui
+![](comparaco-de-precos.png)
+
+>Sqlite db browser
+![](db-browser.png)
+>Data loaded
+![](data-loaded.png)
+
+
+
+
+
+
 # MINI DATA ANALISYS API
 >( PLOT ANY KIND OF DATA WICH HAS ROWS AND COLS)
 - ![](graphic_plotter.png)
