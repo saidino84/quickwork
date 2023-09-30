@@ -9,7 +9,9 @@ from flet.canvas import Canvas,Line,Circle,Path
 from app.db.models.invoice import Invoice
 
 from app.db.models.product import ProductModel
-from app.repository.product_repository import ProductRepository
+from app.repository.db_repository import DbRepository
+from app.repository.exel_product_repository import ProductRepository
+from app.controllers.app_controller import AppController
 from app.ui.header import HeaderAction
 from app.ui.sevices.api import ApiTester
 from settings import Utils
@@ -19,6 +21,14 @@ class DocGenerator(UserControl):
     def __init__(self,size=None,**kw):
         super().__init__(**kw)
         self.size :list=size
+        self.fornecedor_inpt= Ref[TextField]()
+        self.invoice_num_inpt= Ref[TextField]()
+        self.product_name_inpt= Ref[TextField]()
+        self.date_inpt= Ref[TextField]()
+        self.old_pice_inpt= Ref[TextField]()
+        self.new_pice_inpt= Ref[TextField]()
+        self.produt_code_inpt=Ref[TextField]()
+        self.db_repository=DbRepository()
     
     
     
@@ -66,7 +76,7 @@ class DocGenerator(UserControl):
                               ),
         return progress_state
 
-    def _input(self,label:str=None,width=None,value=None):
+    def _input(self,label:str=None,width=None,value=None,ref:Ref=None):
         return Container(
             width=width,
             padding=padding.all(5),
@@ -75,7 +85,9 @@ class DocGenerator(UserControl):
                             border_radius=BorderRadius(bottom_right=2,bottom_left=2,top_left=0,top_right=0) ,
                          content=Column(controls=[
                              Text(f'{label} ',style=TextStyle(color=colors.BLACK),color=colors.BLACK87 ),
-                             TextField(value=value,
+                             TextField(
+                            ref=ref,
+                            value=value,
                             height=32,content_padding=5,cursor_color='white', bgcolor=colors.BLACK12,
                              text_style=TextStyle(weight=FontWeight.BOLD,color=colors.RED_ACCENT,
                                                   ),border_color=colors.TRANSPARENT,
@@ -84,7 +96,7 @@ class DocGenerator(UserControl):
                          ])
                          )
     
-    def _dropdown_input(self,label='',width=None):
+    def _dropdown_input(self,label='',width=None,ref:Ref=None):
         return Container(
             width=width,
             padding=padding.all(5),
@@ -98,7 +110,7 @@ class DocGenerator(UserControl):
                                 # bgcolor=colors.RED_ACCENT,
                                 # padding=padding.only(bottom=8),
                                 content=Dropdown(
-                                # ref=controller,
+                                ref=ref,
                                 content_padding=8,
                             height=30,
                             value=Utils.get_providers()[0],
@@ -164,20 +176,20 @@ class DocGenerator(UserControl):
             # height=350,
             auto_scroll=True,
             controls=[
-                    self._dropdown_input(label='FORNECEDOR'),
+                    self._dropdown_input(label='FORNECEDOR',controler=self.fornecedor_inpt),
                     Row( controls=[
-                        self._input(label='DATA',width=(width/2)-20,value=date.today().strftime("%d/%m/%Y")),
-                        self._input(label='INVOICE',width=(width/2)-16),
+                        self._input(ref=self.date_inpt,label='DATA',width=(width/2)-20,value=date.today().strftime("%d/%m/%Y")),
+                        self._input(ref=self.invoice_num_inpt,label='INVOICE',width=(width/2)-16),
                         ]),
-                    self._input(label='DESCRIPTION',),
-                    self._input(label='BARCODE'),
+                    self._input(ref=self.product_name_inpt,label='DESCRIPTION',),
+                    self._input(ref=self.produt_code_inpt,label='BARCODE'),
                     Row( controls=[
-                        self._input(label='OLD COST',width=(width/2)-20),
-                        self._input(label='NEW COST',width=(width/2)-16),
+                        self._input(ref=self.old_pice_inpt,label='OLD COST',width=(width/2)-20),
+                        self._input(ref=self.new_pice_inpt,label='NEW COST',width=(width/2)-16),
                         ]),
             ]
         )])),#container #inputs
-                    self._btn_go(label="S A V E"),
+                    self._btn_go(label="S A V E",func=self.save_data),
             Container(
                 margin=margin.symmetric(horizontal=5,vertical=12),
                 bgcolor=colors.WHITE24,
@@ -223,7 +235,7 @@ class DocGenerator(UserControl):
                       ]
         )
 
-    def _btn_go(self,label='BOTAO'):
+    def _btn_go(self,label='BOTAO',func=None):
         return Container(
             alignment=alignment.center,
             border_radius=2,
@@ -242,7 +254,8 @@ class DocGenerator(UserControl):
             
             # on_click=lambda x:ProductRepository()._read_file('assets/mercearia.csv')
             # on_click=lambda x:asyncio.run(ApiTester(loader_value=self._progress_value,loader=self._loaderuix).run_compilation(x))
-            on_click=lambda x:asyncio.run(ApiTester(loader_value=self._progress_value,loader=self._loaderuix,datatable=DocGenerator._datatable_list).run_compilation(x))
+            #on_click=lambda x:asyncio.run(ApiTester(loader_value=self._progress_value,loader=self._loaderuix,datatable=DocGenerator._datatable_list).run_compilation(x))
+            on_click=lambda x:func(x),
             )
         )
     
@@ -432,3 +445,6 @@ class DocGenerator(UserControl):
             rows = _get_invoices_from_doc(invoices=ApiTester().invoices)
                 
              )
+
+    def save_data(self):
+        AppController.get_input_data()
