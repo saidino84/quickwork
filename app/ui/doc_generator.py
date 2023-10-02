@@ -62,7 +62,8 @@ class DocGenerator(UserControl):
             vertical_alignment=CrossAxisAlignment.START,
                 controls=[
                     Container(
-                 width=self.size[0]/3,bgcolor=colors.WHITE38,border_radius=8,
+                 width=self.size[0]/3 if self.size[0]>=600 else self.size[0]-17,
+                 bgcolor=colors.WHITE38,border_radius=8,
                 border=Border(bottom=BorderSide(width=30,color=colors.RED_400),left=BorderSide(width=2,color=colors.RED_400),right=BorderSide(width=2,color=colors.RED_400)),
                 # padding=padding.all(8),
                 content=Column(
@@ -70,7 +71,7 @@ class DocGenerator(UserControl):
                     horizontal_alignment=CrossAxisAlignment.START,
                     controls=[
                         # LEFT BOX
-                        self._setup_left_box(width=self.size[0]/3),
+                        self._setup_left_box(width=self.size[0]/3 if self.size[0]>=600 else self.size[0]-17),
                     ],
                 ),
             ),
@@ -232,6 +233,7 @@ class DocGenerator(UserControl):
                      ]
                             )
                  ) ,
+            self._btn_go(label="Visualizar Dados",func=lambda :asyncio.run(start_app())),
             ListTile(width=width,
                      on_click=lambda x:asyncio.run(start_app(x)),
                      title=Row(

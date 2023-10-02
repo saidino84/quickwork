@@ -16,7 +16,7 @@ set_env_data('USER','ADMIN')
 IaService().chat_bot()
 '''
 def main(page:Page):
-    width=860
+    width=285
     height=740
     page.window_width=width
     page.window_always_on_top=True

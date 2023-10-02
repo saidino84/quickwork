@@ -1,4 +1,4 @@
-from tkinter import Tk, ttk
+from tkinter import StringVar, Tk, ttk
 from tkinter.ttk import *
 import sqlite3 as sq
 from tkinter.filedialog import askopenfilename
@@ -52,6 +52,17 @@ class DbRepository:
                 print(f'ERRO AO ENCONTRAR COLUNAS {e}')
         else:
             print('[+] PLEASE CONENCT FIRST OF ALL')
+    def exec_sql_command(self,sql):
+        if self.conn:
+            try:
+                cursor=self.conn.cursor()
+                cursor.execute(sql)
+                cursor.fetchall()
+                cursor.close()
+            except sq.Error as e:
+                print(f'ERROR COMMAND {e}')
+        else:
+            print('[X] no connection found !')
     def close_connection(self,file_path):
         if self.conn is not None:
             self.conn.close()
@@ -65,6 +76,8 @@ class AppUi(ttk.Frame):
         # self_mframe=ttk.Frame(root)
         # _mframe.pack(fill='both',expand=True)
         self.pack(fill='both',expand=True)
+        self.sql_command_var=StringVar()
+        self._sqlres=StringVar(value='Comand not found')
         self.init_components()
 
     def init_components(self):
@@ -145,9 +158,25 @@ class AppUi(ttk.Frame):
 
         _sqlite_frame=ttk.Frame(self)
         _sqlite_frame.grid(row=5,column=0,sticky='ew',pady=10)
-        _input_sql=Entry(_sqlite_frame, )
-        _input_sql.grid(row=0,column=0,sticky='ew',padx=10)
+        _input_sql=Entry(_sqlite_frame,justify='center',textvariable=self.sql_command_var )
+        _input_sql.grid(row=0,column=0,sticky='ew',padx=10,)
+        _sqlite_frame.columnconfigure(0,weight=1)
+
+        _btn_sql_go=Button(_sqlite_frame,text='Go')
+        _btn_sql_go.grid(row=0,column=1)
+        _btn_sql_go.bind("<Button-1>",self.sql_exec_comand)
+
+
+        _label_res=Label(_sqlite_frame,textvariable=self._sqlres)
+        _label_res.grid(row=1,column=0,sticky='ew')
+        _sqlite_frame.rowconfigure(1,weight=1)
+        # _sqlite_frame.rowconfigure()
          
+    def sql_exec_comand(self,event):
+        repo=DbRepository()
+        repo.connect_db(self._label_file_res.cget('text'))
+        res=repo.exec_sql_command(self.sql_command_var.get())
+        self._sqlres.set(res)
 
     def load_file(self,event):
         repo=DbRepository()
@@ -172,17 +201,21 @@ class AppUi(ttk.Frame):
                 descriptio=product[5]
                 old_cost=product[6]
                 new_cost=product[7]
+                date=product[1]
+                invoice=product[2]
             except IndexError as e:
                 id=product[0]
                 barcode=product[2]
                 descriptio=product[1]
                 old_cost=product[3]
                 new_cost=product[4]
+                date=product[5]
+                invoice=product[6]
             differ=round(float(new_cost)-float(old_cost))
             obs='SUBIU' if differ>0 else 'BAIXOU'
             provider='Vip Armazem Muxara'
-            date=product[1]
-            invoice=product[2]
+            
+            
             _tag='increased' if obs.endswith('SUBIU') else tag
             prod=(id,date,barcode,descriptio,old_cost,new_cost,differ,obs,invoice,provider)
           
