@@ -2,10 +2,12 @@ from random import randint
 from datetime import date
 
 import asyncio
+from typing import List
 from flet import *
 
 from app import DataStore
 from flet.canvas import Canvas,Line,Circle,Path
+from app.db.models import Product
 from app.db.models.invoice import Invoice
 
 from app.db.models.product import ProductModel
@@ -39,9 +41,22 @@ class DocGenerator(UserControl):
         self._progress_value=0
         self._loaderuix=self._loader()
         self.instace()
-         
+        self.data_table=DataTable(
+            # height=400, 
+            # scroll=True,
+            column_spacing=12,
+            columns=[
+                DataColumn(label=Text('BARCODE'),),
+                DataColumn(label= Text('OLD', ) ,),
+                DataColumn(label=Text('NEW', ),),
+                DataColumn(label=Text('INVOICE')),
+                DataColumn(label=Text('DATE')),
+                DataColumn(label=Text('provider'.upper())),
+                DataColumn(label=Text('description'.upper())),
+            ],
+            rows= self.get_product_from_db()  
+        )
         return Container(
-            
             content=Row(
             alignment=MainAxisAlignment.START, 
             vertical_alignment=CrossAxisAlignment.START,
@@ -176,7 +191,7 @@ class DocGenerator(UserControl):
             # height=350,
             auto_scroll=True,
             controls=[
-                    self._dropdown_input(label='FORNECEDOR',controler=self.fornecedor_inpt),
+                    self._dropdown_input(label='FORNECEDOR',ref=self.fornecedor_inpt),
                     Row( controls=[
                         self._input(ref=self.date_inpt,label='DATA',width=(width/2)-20,value=date.today().strftime("%d/%m/%Y")),
                         self._input(ref=self.invoice_num_inpt,label='INVOICE',width=(width/2)-16),
@@ -203,6 +218,20 @@ class DocGenerator(UserControl):
 
 
             ),
+            # self.data_table,
+            # DATA TABLE
+            Container(
+            height=200,
+            
+            content=Column(
+                scroll=ScrollMode.ADAPTIVE,
+                
+                controls=[
+                    #TODO ENABLE IT TO LOAD DATA
+                    self.data_table,
+                     ]
+                            )
+                 ) ,
             ListTile(width=width,
                      on_click=lambda x:asyncio.run(start_app(x)),
                      title=Row(
@@ -246,16 +275,16 @@ class DocGenerator(UserControl):
             content=Row(
             alignment=MainAxisAlignment.CENTER,
             controls=[
-            # Icon(name=icons.ADD_ROUNDED,size=12),
+            Icon(name=icons.ADD_ROUNDED,size=12),
             Text(label , style=TextStyle(weight=FontWeight.BOLD,color=colors.BLACK87,
                                                   ),),
             ]
-            ),style=ButtonStyle(shape={'':RoundedRectangleBorder(radius=2)}),
+            ),style=ButtonStyle(shape={'':RoundedRectangleBorder(radius=20)}),
             
             # on_click=lambda x:ProductRepository()._read_file('assets/mercearia.csv')
             # on_click=lambda x:asyncio.run(ApiTester(loader_value=self._progress_value,loader=self._loaderuix).run_compilation(x))
             #on_click=lambda x:asyncio.run(ApiTester(loader_value=self._progress_value,loader=self._loaderuix,datatable=DocGenerator._datatable_list).run_compilation(x))
-            on_click=lambda x:func(x),
+            on_click=lambda x:func(),
             )
         )
     
@@ -379,7 +408,28 @@ class DocGenerator(UserControl):
         return ProgressBar( bgcolor=colors.RED_ACCENT,value=self._progress_value)
        
  
-        
+    def _get_data_row_item(self,product:Product)->DataRow:
+        return DataRow(
+            cells=[
+                DataCell( content=Text(f"{product.code}") ),
+                DataCell( content=Text(f"{product.oldprice}", ) ),
+                DataCell( content=Text(f"{product.newprice}", ) ),
+                DataCell( content=Text(f"{product.invoice}") ),
+                DataCell( content=Text(f'{product.date}') ),
+                DataCell( content=Text(f'{product.supplier}') ),
+                DataCell( content=Text(f'{product.description}') ),
+            ]
+        )
+
+        ...
+    def get_product_from_db(self) ->List[DataRow]:
+        asyncio.run(self.db_repository.run_compilation())
+        print('#############GEEETING PRODUTS FROM REPOSITORY##########')
+        self.produtos=self.db_repository.products
+        print(self.produtos)
+        # self.update()
+        return list(map(lambda item:self._get_data_row_item(item),self.produtos
+                         ))   
     
     def _get_product_row_item(self,product:ProductModel)->DataRow:
         return DataRow(

@@ -40,7 +40,18 @@ class DbRepository:
                 return dados
             except sq.Error as e:
                 print('ERRO AO IMPRIMIR DADOS')
-
+    def list_columns(self, table_name):
+        if self.conn is not None:
+            try:
+                cursor=self.conn.cursor()
+                cursor.execute(f"PRAGMA table_info({table_name});")
+                columns=cursor.fetchall()
+                cursor.close()
+                return columns
+            except sq.Error as e:
+                print(f'ERRO AO ENCONTRAR COLUNAS {e}')
+        else:
+            print('[+] PLEASE CONENCT FIRST OF ALL')
     def close_connection(self,file_path):
         if self.conn is not None:
             self.conn.close()
@@ -113,8 +124,8 @@ class AppUi(ttk.Frame):
 
          
         # Eventos do treeview
-        self.tree.bind("<<TreeviewSelect>>", lambda event: self.tree.edit_modified(True))
-        self.tree.bind("<Double-1>", lambda event: self.tree.edit_modified(False))
+        self.tree.bind("<<TreeviewSelect>>", lambda event: print(event))
+        self.tree.bind("<Double-1>", lambda event: print(event))
 
         # Frame de botao de load e text res
         _btn_frame=ttk.Frame(self)
@@ -131,6 +142,11 @@ class AppUi(ttk.Frame):
         # Label for db/res
         self._label_file_res=ttk.Label(self,text='file not Loaded',padding=20)
         self._label_file_res.grid(row=4,sticky='ew', )
+
+        _sqlite_frame=ttk.Frame(self)
+        _sqlite_frame.grid(row=5,column=0,sticky='ew',pady=10)
+        _input_sql=Entry(_sqlite_frame, )
+        _input_sql.grid(row=0,column=0,sticky='ew',padx=10)
          
 
     def load_file(self,event):
@@ -143,17 +159,30 @@ class AppUi(ttk.Frame):
         data=repo.show_table_data(rows[0][0])
         self.tree.delete(*self.tree.get_children())
         for product in data:
+            print(product)
             tag='impar' if product[0]%2==0 else 'par'
             id=product[0]
-            barcode=product[2]
-            descriptio=product[1]
-            old_cost=product[3]
-            new_cost=product[4]
-            differ=round(float(old_cost)-float(new_cost))
-            obs='BAIXOU' if differ<0 else 'SUBIU'
+            barcode= None
+            descriptio=None
+            old_cost=0
+            new_cost=0
+            try:
+                id=product[0]
+                barcode=product[4]
+                descriptio=product[5]
+                old_cost=product[6]
+                new_cost=product[7]
+            except IndexError as e:
+                id=product[0]
+                barcode=product[2]
+                descriptio=product[1]
+                old_cost=product[3]
+                new_cost=product[4]
+            differ=round(float(new_cost)-float(old_cost))
+            obs='SUBIU' if differ>0 else 'BAIXOU'
             provider='Vip Armazem Muxara'
-            date=product[5]
-            invoice=product[6]
+            date=product[1]
+            invoice=product[2]
             _tag='increased' if obs.endswith('SUBIU') else tag
             prod=(id,date,barcode,descriptio,old_cost,new_cost,differ,obs,invoice,provider)
           

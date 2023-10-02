@@ -34,7 +34,7 @@ class DbRepository:
                 d=session.add(produto)
                 session.commit()
                 print(f'Produto adicioado {d}')
-                db=DataStore.control_reference.get('PriceReport')
+                db=DataStore.control_reference.get('DocGenerator')
                 db.update() 
                 print('--------------UPDATED----------------')
             asyncio.run(self.run_compilation())
@@ -47,7 +47,7 @@ class DbRepository:
                 # obter os resultados como uma lista de objectos
                 products_list=result.scalars().all()
                 self.products=products_list
-                db=DataStore.control_reference.get('PriceReport')
+                db=DataStore.control_reference.get('DocGenerator')
                 db.update() 
                 print('--------------UPDATED----------------')
                 for product  in products_list:
@@ -66,7 +66,7 @@ class DbRepository:
     def export_produts(self):
         import pandas as pd
         import os
-        form= DataStore.control_reference.get('PriceReport')
+        form= DataStore.control_reference.get('DocGenerator')
         with self.Session() as session:
                 stmt = select(Product)
                 # executar consulta assicrona
@@ -74,7 +74,7 @@ class DbRepository:
                 # obter os resultados como uma lista de objectos
                 products_list=result.scalars().all()
                 self.products=products_list
-                ui_page=DataStore.control_reference.get('PriceReport')
+                ui_page=DataStore.control_reference.get('DocGenerator')
                 dicionario = [product.__dict__ for product in products_list]
                 dataframe= pd.DataFrame(dicionario)
                 date=datetime.now()

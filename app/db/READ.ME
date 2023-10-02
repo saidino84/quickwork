@@ -1,0 +1,143 @@
+SQLAlchemy é uma biblioteca Python muito poderosa e flexível que permite que você trabalhe com bancos de dados relacionais de uma forma fácil e eficiente.
+Para criar uma classe que faz todo o CRUD de forma assíncrona, você pode seguir os seguintes passos:
+●	Importar as classes e funções necessárias do módulo `sqlalchemy.ext.asyncio`, como `create_async_engine`, `AsyncSession`, `async_scoped_session`, e `declarative_base`.
+●	Criar uma classe base usando a função `declarative_base`, que retorna uma classe que serve como base para todas as classes mapeadas pelo ORM.
+●	Criar uma subclasse da classe base que representa a tabela de produtos, com os mesmos atributos e colunas que você definiu na imagem que você forneceu.
+●	Criar um método `__repr__` na subclasse que retorna uma representação string do objeto, com os valores dos atributos.
+●	Criar um método estático `create` na subclasse que recebe um dicionário com os valores dos atributos e retorna um novo objeto da subclasse.
+●	Criar um método de instância `update` na subclasse que recebe um dicionário com os novos valores dos atributos e atualiza o objeto com esses valores.
+●	Criar um método de instância `delete` na subclasse que deleta o objeto do banco de dados.
+●	Criar um método estático `read_all` na subclasse que retorna uma lista de todos os objetos da subclasse no banco de dados.
+●	Criar um método estático `read_by_id` na subclasse que recebe um id e retorna o objeto da subclasse com esse id, ou None se não existir.
+●	Criar um método estático `read_by_name` na subclasse que recebe um nome e retorna o objeto da subclasse com esse nome, ou None se não existir.
+●	Criar um método estático `read_by_price_range` na subclasse que recebe um preço mínimo e um preço máximo e retorna uma lista de objetos da subclasse cujos preços estão dentro desse intervalo.
+●	Criar um método main para executar as ações de forma clara e imprimir os dados. O método main deve fazer o seguinte:
+○	Criar um motor assíncrono usando a função `create_async_engine`, passando a URL do banco de dados SQLite como argumento.
+○	Criar uma sessão assíncrona usando a função `async_scoped_session`, passando uma fábrica de sessões assíncronas criada pela função `sessionmaker`, com o motor assíncrono e a classe `AsyncSession` como argumentos.
+○	Usar o método `run_sync` do motor assíncrono para criar todas as tabelas definidas pela classe base no banco de dados, passando o método `create_all` da classe base como argumento.
+○	Usar o gerenciador de contexto `async with` para abrir a sessão assíncrona e executar as operações CRUD dentro dele, usando os métodos da subclasse e da sessão. As operações devem ser as seguintes:
+■	Criar alguns objetos da subclasse usando o método `create`, passando dicionários com os valores dos atributos, e adicioná-los à sessão usando o método `add`.
+■	Confirmar as mudanças na sessão usando o método `commit`.
+■	Ler todos os objetos da subclasse no banco de dados usando o método `read_all` e imprimir a lista resultante.
+■	Ler um objeto da subclasse pelo id usando o método `read_by_id` e imprimir o objeto resultante.
+■	Ler um objeto da subclasse pelo nome usando o método `read_by_name` e imprimir o objeto resultante.
+■	Ler alguns objetos da subclasse pelo intervalo de preços usando o método `read_by_price_range` e imprimir a lista resultante.
+■	Atualizar alguns atributos de alguns objetos da subclasse usando o método `update`, passando dicionários com os novos valores dos atributos, e confirmar as mudanças na sessão usando o método `commit`.
+■	Deletar alguns objetos da subclasse usando o método `delete` e confirmar as mudanças na sessão usando o método `commit`.
+■	Ler novamente todos os objetos da subclasse no banco de dados usando o método `read_all` e imprimir a lista resultante.
+○	Criar alguns objetos da subclasse usando o método `create`, passando dicionários com os valores dos atributos, e adicioná-los à sessão usando o método `add`.
+○	Confirmar as mudanças na sessão usando o método `commit`.
+○	Ler todos os objetos da subclasse no banco de dados usando o método `read_all` e imprimir a lista resultante.
+○	Ler um objeto da subclasse pelo id usando o método `read_by_id` e imprimir o objeto resultante.
+○	Ler um objeto da subclasse pelo nome usando o método `read_by_name` e imprimir o objeto resultante.
+○	Ler alguns objetos da subclasse pelo intervalo de preços usando o método `read_by_price_range` e imprimir a lista resultante.
+○	Atualizar alguns atributos de alguns objetos da subclasse usando o método `update`, passando dicionários com os novos valores dos atributos, e confirmar as mudanças na sessão usando o método `commit`.
+○	Deletar alguns objetos da subclasse usando o método `delete` e confirmar as mudanças na sessão usando o método `commit`.
+○	Ler novamente todos os objetos da subclasse no banco de dados usando o método `read_all` e imprimir a lista resultante.
+●	Criar um motor assíncrono usando a função `create_async_engine`, passando a URL do banco de dados SQLite como argumento.
+●	Criar uma sessão assíncrona usando a função `async_scoped_session`, passando uma fábrica de sessões assíncronas criada pela função `sessionmaker`, com o motor assíncrono e a classe `AsyncSession` como argumentos.
+●	Usar o método `run_sync` do motor assíncrono para criar todas as tabelas definidas pela classe base no banco de dados, passando o método `create_all` da classe base como argumento.
+●	Usar o gerenciador de contexto `async with` para abrir a sessão assíncrona e executar as operações CRUD dentro dele, usando os métodos da subclasse e da sessão. As operações devem ser as seguintes:
+○	Criar alguns objetos da subclasse usando o método `create`, passando dicionários com os valores dos atributos, e adicioná-los à sessão usando o método `add`.
+○	Confirmar as mudanças na sessão usando o método `commit`.
+○	Ler todos os objetos da subclasse no banco de dados usando o método `read_all` e imprimir a lista resultante.
+○	Ler um objeto da subclasse pelo id usando o método `read_by_id` e imprimir o objeto resultante.
+○	Ler um objeto da subclasse pelo nome usando o método `read_by_name` e imprimir o objeto resultante.
+○	Ler alguns objetos da subclasse pelo intervalo de preços usando o método `read_by_price_range` e imprimir a lista resultante.
+○	Atualizar alguns atributos de alguns objetos da subclasse usando o método `update`, passando dicionários com os novos valores dos atributos, e confirmar as mudanças na sessão usando o método `commit`.
+○	Deletar alguns objetos da subclasse usando o método `delete` e confirmar as mudanças na sessão usando o método `commit`.
+○	Ler novamente todos os objetos da subclasse no banco de dados usando o método `read_all` e imprimir a lista resultante.
+●	Criar alguns objetos da subclasse usando o método `create`, passando dicionários com os valores dos atributos, e adicioná-los à sessão usando o método `add`.
+●	Confirmar as mudanças na sessão usando o método `commit`.
+●	Ler todos os objetos da subclasse no banco de dados usando o método `read_all` e imprimir a lista resultante.
+●	Ler um objeto da subclasse pelo id usando o método `read_by_id` e imprimir o objeto resultante.
+●	Ler um objeto da subclasse pelo nome usando o método `read_by_name` e imprimir o objeto resultante.
+●	Ler alguns objetos da subclasse pelo intervalo de preços usando o método `read_by_price_range` e imprimir a lista resultante.
+●	Atualizar alguns atributos de alguns objetos da subclasse usando o método `update`, passando dicionários com os novos valores dos atributos, e confirmar as mudanças na sessão usando o método `commit`.
+●	Deletar alguns objetos da subclasse usando o método `delete` e confirmar as mudanças na sessão usando o método `commit`.
+●	Ler novamente todos os objetos da subclasse no banco de dados usando o método `read_all` e imprimir a lista resultante.
+A seguir, você pode ver um exemplo de código que implementa esses passos, usando os mesmos nomes e valores que você usou na imagem que você forneceu. Você pode copiar e colar esse código em um arquivo Python e executá-lo para ver o resultado. Você também pode modificar o código para testar outras funcionalidades do SQLAlchemy e do ORM assíncrono.
+# Importar as classes e funções necessárias do módulo sqlalchemy.ext.asyncio
+```py
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_scoped_session
+from sqlalchemy import Column, Integer, String, Float, Date
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+
+# Criar uma classe base usando a função declarative_base
+Base = declarative_base()
+
+# Criar uma subclasse da classe base que representa a tabela de produtos
+class Product(Base):
+    # Definir o nome da tabela
+    __tablename__ = "products"
+
+    # Definir os atributos e colunas da tabela
+    id = Column(Integer, primary_key=True)
+    code = Column(String)
+    supplier = Column(String)
+    oldprice = Column(Float)
+    newprice = Column(Float)
+    date = Column(Date)
+    invoice = Column(String)
+
+    # Criar um método __repr__ que retorna uma representação string do objeto
+    def __repr__(self):
+        return f"<Product(id={self.id}, code={self.code}, supplier={self.supplier}, oldprice={self.oldprice}, newprice={self.newprice}, date={self.date}, invoice={self.invoice})>"
+
+    # Criar um método estático create que recebe um dicionário com os valores dos atributos e retorna um novo objeto da subclasse
+    @staticmethod
+    async def create(data):
+        return Product(
+            id=data.get("id"),
+            code=data.get("code"),
+            supplier=data.get("supplier"),
+            oldprice=data.get("oldprice"),
+            newprice=data.get("newprice"),
+            date=data.get("date"),
+            invoice=data.get("invoice")
+        )
+
+    # Criar um método de instância update que recebe um dicionário com os novos valores dos atributos e atualiza o objeto com esses valores
+    async def update(self, data):
+        for key, value in data.items():
+            setattr(self, key, value)
+
+    # Criar um método de instância delete que deleta o objeto do banco de dados
+    async def delete(self):
+        session.delete(self)
+
+    # Criar um método estático read_all que retorna uma lista de todos os objetos da subclasse no banco de dados
+    @staticmethod
+    async def read_all():
+        return session.query(Product).all()
+
+    # Criar um método estático read_by_id que recebe um id e retorna o objeto da subclasse com esse id, ou None se não existir
+    @staticmethod
+    async def read_by_id(id):
+        return session.query(Product).filter_by(id=id).first()
+
+    # Criar um método estático read_by_name que recebe um nome e retorna o objeto da subclasse com esse nome, ou None se não existir
+    @staticmethod
+    async def read_by_name(name):
+        return session.query(Product).filter_by(name=name).first()
+
+    # Criar um método estático read_by_price_range que recebe um preço mínimo e um preço máximo e retorna uma lista de objetos da subclasse cujos preços estão dentro desse intervalo
+    @staticmethod
+    async def read_by_price_range(min_price, max_price):
+        return session.query(Product).filter(Product.price.between(min_price, max_price)).all()
+
+# Criar um método main para executar as ações de forma clara e imprimir os dados
+async def main():
+    # Criar um motor assíncrono usando a função create_async_engine, passando a URL do banco de dados SQLite como argumento
+    engine = create_async_engine("sqlite+aiosqlite:///test.db")
+
+    # Criar uma sessão assíncrona usando a função async_scoped_session, passando uma fábrica de sessões assíncronas criada pela função sessionmaker, com o motor assíncrono e a classe AsyncSession como argumentos
+    global session
+    session = async_scoped_session(sessionmaker(engine, expire_on_commit=False, class_=AsyncSession))
+
+    # Usar o método run_sync do motor assíncrono para criar todas as tabelas definidas pela classe base no banco de dados, passando o método create_all da classe base como argumento
+    await engine.run_sync(Base.metadata.create_all)
+
+    # Usar o gerenciador de contexto async with para abrir a sessão assíncrona e executar as operações CRUD dentro
+```
