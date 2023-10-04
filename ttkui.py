@@ -1,3 +1,4 @@
+import os
 from tkinter import StringVar, Tk, ttk,Toplevel
 from tkinter.ttk import *
 import sqlite3 as sq
@@ -48,9 +49,9 @@ class DbRepository:
             try:
                 cursor =self.conn.cursor()
                 if(data is not None):
-                    cursor.execute(f'SELECT * FROM {tabela} WHERE date="29/09/2023"') 
+                    cursor.execute(f'SELECT * FROM {tabela} WHERE date="29/09/2023";') 
                 else:
-                    cursor.execute(f'SELECT * FROM {tabela} ') 
+                    cursor.execute(f'SELECT * FROM {tabela} ;') 
                 dados=cursor.fetchall()
                 print("Data feched ....")
                 print(dados[0])
@@ -89,11 +90,40 @@ class DbRepository:
         else:
             print('[+] PLEASE CONENCT FIRST')
     def update_product(self,product:Product):
+        tables=self.list_tables()
+        print("TABELAS",tables)
+        if self.conn is not None:
+            cursor=self.conn.cursor()
+            update_stmt=f'''
+            UPDATE {tables[0]}
+            SET date = ?, invoice = ?,supplier = ?,oldprice = ?,
+            newprice = ?,code =?, description = ?
+            WHERE id = ?;
+            '''
+            cursor.execute(
+                update_stmt,
+                (product.date, product.invoice,product.supplier,product.oldprice,
+                 product.newprice,product.code,product.description,)
+            )
+            cursor.commit()
+            cursor.close()
+
+    def delete_product(self,product:Product):
+        if self.conn is not None:
+            cursor=self.conn.cursor()
+            delete_stmt='''
+            DELETE FROM products
+            WHERE id = ?;
+            '''
+            cursor.execute(
+                delete_stmt,
+                product.id,
+            )
+            cursor.commit()
+            cursor.close()
+    def insert_product(self,product:Product):
         if self.conn is not None:
             cursor=self.cursor()
-            cursor.execute(
-                "UPDATE FROM products WHERE ID={product.id} values(product.name)"
-            )
 class AppUi(ttk.Frame):
     def __init__(self,master=None,db=None ,**args):
         super().__init__(master,**args )
@@ -223,38 +253,47 @@ class AppUi(ttk.Frame):
         _last_row=0
         dados={}
         id_var=StringVar()
-        id_var.set(str(values[0]))
         date_var=StringVar()
-        date_var.set(values[1])
         barcode_var=StringVar( )
-        barcode_var.set(values[2])
         description_var=StringVar()
-        description_var.set(values[3])
         top_level.title(description_var.get())
         old_price_var=StringVar()
-        old_price_var.set(values[4])
         new_price_var=StringVar()
-        new_price_var.set(values[5])
         supplier_var=StringVar()
-        supplier_var.set(values[9])
         invoice_var=StringVar()
-        invoice_var.set(values[8])
-        entries={}
+    
        
-
-        data=self._input_edit_form(label='Date',root=_fram,variable=date_var,row=1,lcol=0,icol=1, )
-        self._input_edit_form(label='Barcode',root=_fram,variable=barcode_var,row=2,lcol=0,icol=1, )
-        self._input_edit_form(label='Description',root=_fram,variable=description_var,row=3,lcol=0,icol=1, )
-        self._input_edit_form(label='Old Price',root=_fram,variable=old_price_var,row=4,lcol=0,icol=1, )
-        self._input_edit_form(label='New Price',root=_fram,variable=old_price_var,row=5,lcol=0,icol=1, )
-        self._input_edit_form(label='Provider',root=_fram,variable=supplier_var,row=6,lcol=0,icol=1, )
-
+        # self.get_input(label='Barcode',root=_fram,variable=barcode_var,row=2,lcol=0,icol=1,)
+        self.get_input(label='Date',root=_fram,variable=date_var,row=1,lcol=0,icol=1, )
+        self.get_input(label='Nome',root=_fram,variable=date_var,row=3,lcol=0,icol=1, )
+        
+        self.get_input(label='Barcode',root=_fram,variable=barcode_var,row=2,lcol=0,icol=1, )
+        self.get_input(label='Description',root=_fram,variable=description_var,row=3,lcol=0,icol=1, )
+        self.get_input(label='Old Price',root=_fram,variable=old_price_var,row=4,lcol=0,icol=1, )
+        self.get_input(label='New Price',root=_fram,variable=new_price_var,row=5,lcol=0,icol=1, )
+        self.get_input(label='Provider',root=_fram,variable=supplier_var,row=6,lcol=0,icol=1, )
+        
+        _label=Label(_fram,text='Human')
+        _label.grid(row=6,column=0,sticky='w',padx=10,pady=10, )
+        entry=Entry(_fram,textvariable=description_var)
+        entry.grid(row=6,column=1,sticky='ew',pady=10)
         
         _btn_update=Button(_fram,text='Actualizar')
         _btn_update.grid(row=8, column=0, pady=10,sticky='e',padx=10)
         _btn_delete=Button(_fram,text='Apagar')
         _btn_delete.grid(row=8, column=1, pady=10,sticky='w')
         
+        # pl
+        id_var.set(str(values[0]))
+        date_var.set(values[1])
+        barcode_var.set(values[2])
+        description_var.set(values[3])
+        old_price_var.set(values[4])
+        new_price_var.set(values[5])
+        supplier_var.set(values[9])
+        invoice_var.set(values[8])
+
+
         product=Product (
                     id=id_var.get(),
                     description=description_var.get(),
@@ -266,24 +305,47 @@ class AppUi(ttk.Frame):
                     date=date_var.get(),
                         )
         _btn_update.bind('<Button-1>',lambda x:self.update_product(x,product))
-        self._input_edit_form(label='Entry By',root=_fram,variable=None,row=7,lcol=0,icol=1, )
+        _btn_delete.bind("<Button-1>",lambda x:self.delete_product(x,product))
+        self.input_edit_form(label='Entry By',root=_fram,variable=description_var.get(2),row=7,lcol=0,icol=1, )
+    def get_input(self,root,label,variable,row,lcol,icol):
+        print(f'GET INPUT CALLED: {label}')
+        _label=Label(root,text=label)
+        _label.grid(row=row,column=lcol,sticky='w',padx=10,pady=10, )
+        entry=Entry(root,textvariable=variable)
 
-    def _input_edit_form(self,root,label,variable,row,lcol,icol):
+        entry.grid(row=row,column=icol,sticky='ew',pady=10)
+        root.columnconfigure(icol,weight=1)
+        print(entry.get())
+        return entry
+
+    def input_edit_form(self,root,label,variable,row,lcol,icol):
+        print(f'INPUT CALLED.....{label}')
         _label=Label(root,text=label)
         _label.grid(row=row,column=lcol,sticky='w',padx=10,pady=10, )
         entry=Entry(root,textvariable=variable)
         entry.grid(row=row,column=icol,sticky='ew',pady=10)
         root.columnconfigure(icol,weight=1)
-        variable.get()
+ 
         print(f'ENTRY {label}: {entry.get()}')
-        return [label,entry]
+        return _label,entry
+         
     def update_product(self,event,product:Product):
         if self.repo.conn is not None:
             print('Connection Has stabished...')
-            self.repo.update(product)
+            self.repo.update_product(product)
         else:
             print('connection not found...')
         print(product.description)
+    def delete_product(self,event,product:Product):
+        if self.repo.conn is not None:
+            print('Connection Has stabished...')
+            self.repo.delete_product(product)
+        else:
+            print('connection not found...')
+        print(product.description)
+
+    def input_edit_form(self,root,label,variable,row,lcol,icol):
+        _label=Label(root,text=label)
     def sql_exec_comand(self,event):
         repo=DbRepository()
         repo.connect_db(self._label_file_res.cget('text'))
@@ -393,4 +455,9 @@ def main(path=None):
     ui.pack()
     _root.mainloop()
 if __name__=='__main__':
-    main()
+    files=os.listdir(".")
+    db=None
+    for file in files:
+        if file.endswith('db.db'):
+            db=file
+    main(path=db)
