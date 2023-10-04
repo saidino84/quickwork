@@ -164,7 +164,7 @@ class DocGenerator(UserControl):
         return Container(
             content=Column(
                 controls=[
-                    # self._search_input(), 
+                    # self._search_input(),
                     # self._loader_state(),
                     Container(
             #  height=20,
@@ -176,21 +176,24 @@ class DocGenerator(UserControl):
             content=Text('COMPARAÇÃO DE PREÇOS',color=colors.WHITE,style=TextStyle(size=8,
                     weight=FontWeight.W_900,color=colors.WHITE,
                                                                 ))),
-                    Container(
+            #TODO LOADER (LINEAR PROGRESSS)
+            # Container(
             # opacity=0,
-            border_radius=border_radius.all(8),
-                margin=margin.symmetric(horizontal=5),
-                height=10,
-                content=self._loaderuix,
-                              ),
+            # border_radius=border_radius.all(8),
+            #     margin=margin.symmetric(horizontal=5),
+                
+            #     height=10,
+            #     content=self._loaderuix,
+            #                   ),
             #inputs
             Container(
-                height=200,
+                height=210,
                 content=ListView(
             controls=[
                 Column(
             # height=350,
             auto_scroll=True,
+            spacing=5,
             controls=[
                     self._dropdown_input(label='FORNECEDOR',ref=self.fornecedor_inpt),
                     Row( controls=[
@@ -205,21 +208,9 @@ class DocGenerator(UserControl):
                         ]),
             ]
         )])),#container #inputs
-                    self._btn_go(label="S A V E",func=self.save_data),
-            Container(
-                margin=margin.symmetric(horizontal=5,vertical=12),
-                bgcolor=colors.WHITE24,
-                gradient=LinearGradient(
-                        colors=[colors.BLACK26,colors.WHITE,colors.BLACK]
-                ),
-                width=width,
-                padding=8,
-                alignment=Alignment(5,5),
-                content=Text('Calculo de Iva')
-
-
-            ),
-            # self.data_table,
+                    self._btn_go(label="S A V E",func=self.save_data,color=colors.RED_ACCENT),
+             
+           
             # DATA TABLE
             Container(
             height=200,
@@ -233,29 +224,15 @@ class DocGenerator(UserControl):
                      ]
                             )
                  ) ,
-            self._btn_go(label="Visualizar Dados",func=lambda :asyncio.run(start_app())),
-            ListTile(width=width,
-                     on_click=lambda x:asyncio.run(start_app(x)),
-                     title=Row(
-                alignment=MainAxisAlignment.SPACE_BETWEEN,
-                
-                controls=[
-                Text("Backers Cream Crackers  Crisp Crackers 200g".split('  ')[0],max_lines=2,overflow=TextOverflow.FADE,size=12),
-                Icon(icons.ARROW_CIRCLE_UP,color=colors.RED_ACCENT),
-                Container(width=20),
-                ]),
-                     subtitle=Column(
-                                    run_spacing=2,
-                                    spacing=2,
-                                    controls=[
-                                    self.section('Barcode:',value="8745852425"),
-                                    self.section('Old price:',value="87.25"),
-                                    self.section('New Price:',value="175.25"),
-                                    ]),),
-                    self._graphic(),
+            Row(spacing=5,
+            controls=[self._btn_go(label="Editar",func=lambda :asyncio.run(start_app()),color='#081d33',width=(width/2)),
+            self._btn_go(label="Exportar",func=self.db_repository.export_produts,color='#081d33',width=(width/2)-10),]
+                ),
+            
+                    # self._graphic(),
 
                 ])
-        )
+            )
     def section(self,section,value=""):
         return Row(
             alignment=MainAxisAlignment.SPACE_BETWEEN,
@@ -266,22 +243,23 @@ class DocGenerator(UserControl):
                       ]
         )
 
-    def _btn_go(self,label='BOTAO',func=None):
+    def _btn_go(self,label='BOTAO',func=None,color=colors.RED_ACCENT,width=None,icon=None):
         return Container(
             alignment=alignment.center,
             border_radius=2,
+            width=width,
             padding=padding.all(5),
             content=ElevatedButton(
-            bgcolor =colors.RED_ACCENT,#"#081d33",
+             bgcolor =color,#"#081d33",
             color=colors.WHITE,#colors.RED_ACCENT,
             content=Row(
             alignment=MainAxisAlignment.CENTER,
             controls=[
-            Icon(name=icons.ADD_ROUNDED,size=12),
+            Container(width=2,) if icon is None else Icon(name=icon,size=12)  ,
             Text(label , style=TextStyle(weight=FontWeight.BOLD,color=colors.BLACK87,
                                                   ),),
             ]
-            ),style=ButtonStyle(shape={'':RoundedRectangleBorder(radius=20)}),
+            ),style=ButtonStyle(shape={'':RoundedRectangleBorder(radius=0)}),
             
             # on_click=lambda x:ProductRepository()._read_file('assets/mercearia.csv')
             # on_click=lambda x:asyncio.run(ApiTester(loader_value=self._progress_value,loader=self._loaderuix).run_compilation(x))
@@ -409,7 +387,25 @@ class DocGenerator(UserControl):
     def _loader(self  ):
         return ProgressBar( bgcolor=colors.RED_ACCENT,value=self._progress_value)
        
- 
+    def clicket_item(self,width)->ListTile:
+        return ListTile(width=width,
+                     on_click=lambda x:asyncio.run(start_app(x)),
+                     title=Row(
+                alignment=MainAxisAlignment.SPACE_BETWEEN,
+                
+                controls=[
+                Text("Backers Cream Crackers  Crisp Crackers 200g".split('  ')[0],max_lines=2,overflow=TextOverflow.FADE,size=12),
+                Icon(icons.ARROW_CIRCLE_UP,color=colors.RED_ACCENT),
+                Container(width=20),
+                ]),
+                     subtitle=Column(
+                                    run_spacing=2,
+                                    spacing=2,
+                                    controls=[
+                                    self.section('Barcode:',value="8745852425"),
+                                    self.section('Old price:',value="87.25"),
+                                    self.section('New Price:',value="175.25"),
+                                    ]),),
     def _get_data_row_item(self,product:Product)->DataRow:
         return DataRow(
             cells=[
@@ -492,8 +488,6 @@ class DocGenerator(UserControl):
                     DataColumn(label=Text('Finalizacao')),
                     DataColumn(label=Text('Sujit')),
                  ],
-            # rows = self.__get_produts(10)
-            # rows = self._get_products_from_doc(products=ProductRepository()._read_file('assets/mercearia.csv'))
             rows = _get_invoices_from_doc(invoices=ApiTester().invoices)
                 
              )
