@@ -11,6 +11,7 @@ import asyncio
 # import openpyxl
 # import pandas as pd
 from flet import *
+import subprocess
 
 class DbRepository:
     products:List[Product]=[]
@@ -67,23 +68,34 @@ class DbRepository:
         import pandas as pd
         import os
         form= DataStore.control_reference.get('DocGenerator')
-        with self.Session() as session:
-                stmt = select(Product)
-                # executar consulta assicrona
-                result =session.execute(statement=stmt)
-                # obter os resultados como uma lista de objectos
-                products_list=result.scalars().all()
-                self.products=products_list
-                ui_page=DataStore.control_reference.get('DocGenerator')
-                dicionario = [product.__dict__ for product in products_list]
-                dataframe= pd.DataFrame(dicionario)
-                date=datetime.now()
-                file=f"{date.day}-{date.month}-{date.year}-{date.hour}-{date.minute}-{date.second}.xlsx"
-                dataframe.to_excel(file)
+        try:
+            with self.Session() as session:
+                    stmt = select(Product)
+                    # executar consulta assicrona
+                    result =session.execute(statement=stmt)
+                    # obter os resultados como uma lista de objectos
+                    products_list=result.scalars().all()
+                    self.products=products_list
+                    ui_page=DataStore.control_reference.get('DocGenerator')
+                    dicionario = [product.__dict__ for product in products_list]
+                    dataframe= pd.DataFrame(dicionario)
+                    date=datetime.now()
+                    file=f"{date.day}-{date.month}-{date.year}-{date.hour}-{date.minute}-{date.second}.xlsx"
+                    dataframe.to_excel(file)
+                    
+
+        except Exception as e:
+            print(e)
         def close_dlg(e):
             dialog.open = False
             e.control.page.update()
-            os.system(file)
+            full_path_file=os.path.join(os.getcwd(),file)
+            # os.system(full_path_file)
+            # launch generated execl file
+            subprocess.call(['start','excel',full_path_file],shell=True) 
+            #comment of top line what dais it do
+            print('file allread open')
+
         dialog=AlertDialog( 
                 modal=True,
                 title=Text("Documeto Exported",color=colors.RED),

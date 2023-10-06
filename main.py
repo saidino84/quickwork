@@ -5,6 +5,7 @@ from app.services.scrap.scrapper import Scrapper
 from app.ui.doc_generator import DocGenerator
 from app.ui.graphic.plotter import Graphic
 from app.services.reports import generate_doc
+from app.db.models import Product,Supplier,Base
 # from app.services.scrap.scrapper import Scrapper
 ''''ChatGpt Services
 from app.services.ia.config import get_password,set_env_data

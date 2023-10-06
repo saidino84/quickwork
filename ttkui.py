@@ -3,8 +3,10 @@ from tkinter import StringVar, Tk, ttk,Toplevel
 from tkinter.ttk import *
 import sqlite3 as sq
 from tkinter.filedialog import askopenfilename
+from dataclasses import dataclass
+
+@dataclass
 class Product :
-    __tablename__='products'
     id:int
     date:str 
     invoice:str 
@@ -13,17 +15,17 @@ class Product :
     description: str 
     oldprice:str 
     newprice:str 
-    def __init__(self,id, description,invoice,newprice,oldprice,supplier,code,date):
-        self.date=date
-        self.id=id,
-        self.invoice=invoice
-        self.supplier=supplier
-        self.code=code
-        self.description = description
-        self.oldprice=oldprice
-        self.newprice=newprice
-    def __repr__(self) -> str:
-        return f"""'id:'{self.id},'Name:',Id{self.description}"""
+    # def __init__(self,id, description,invoice,newprice,oldprice,supplier,code,date):
+    #     self.date=date
+    #     self.id=id,
+    #     self.invoice=invoice
+    #     self.supplier=supplier
+    #     self.code=code
+    #     self.description = description
+    #     self.oldprice=oldprice
+    #     self.newprice=newprice
+    # def __repr__(self) -> str:
+    #     return f"""'id:'{self.id},'Name:',Id{self.description}"""
 class DbRepository:
     def __init__(self,) -> None:
         self.conn=None
@@ -61,6 +63,7 @@ class DbRepository:
                 return dados
             except sq.Error as e:
                 print('ERRO AO IMPRIMIR DADOS')
+                return []
     def list_columns(self, table_name):
         if self.conn is not None:
             try:
@@ -93,39 +96,43 @@ class DbRepository:
             print('[+] PLEASE CONENCT FIRST')
     def update_product(self,product:Product):
         tables=self.list_tables()
-        print("TABELAS",tables)
+        print("[ UP ] TABELAS",tables)
         print(f'ID TO UPDATE TYPE :{type(product.id)}')
         if self.conn is not None:
             cursor=self.conn.cursor()
-            update_stmt=  f""" UPDATE products SET date={product.date}, 
-            invoice={product.invoice}, oldprice={product.oldprice}, 
-            newprice={product.newprice}, code={product.code}  WHERE id={product.id[0]};"""
+            update_stmt=  f''' UPDATE products SET date =   "{product.date}", 
+            invoice={product.invoice}, oldprice={product.oldprice}, description = " {product.description} ", supplier = "{product.supplier}", 
+            newprice={product.newprice}, code={product.code}  WHERE id={product.id[0]};'''
     
             print(f'UCTUALIZANDO PRODUCT ID: {product.id[0]}')
             print(update_stmt)
-            st=cursor.execute(
-                update_stmt
-                )
-            
+            try:
+                st=cursor.execute(
+                    update_stmt
+                    )
+            except sq.Error as e:
+                print(f'ERROR COMMAND {e}')
             self.conn.commit()
             print(f'Product Updated...{cursor.rowcount} registros atualizados  ')
             cursor.close()
 
-    def delete_product(self,product:Product):
+    def delete_product(self,prod_id):
         if self.conn is not None:
             cursor=self.conn.cursor()
-            print(f'ID DELETANDO :{product.id}')
-            delete_stmt='''
+            print(f'ID DELETANDO :{prod_id}')
+            delete_stmt=f'''
             DELETE FROM products
-            WHERE id = ?;
+            WHERE id = {prod_id};
             '''
-            st=cursor.execute(
-                delete_stmt,
-                product.id,
-            )
+            try:
+                st=cursor.execute(
+                    delete_stmt
+                )
+                self.conn.commit()
+                print(f'delete suceeded :{st}')
+            except sq.Error as e:
+                print(f'ERROR DELETE COMMAND {e}')
             # commit data to file
-            self.conn.commit()
-            print(f'delete suceeded :{st}')
             
             cursor.close()
     def insert_product(self,product:Product):
@@ -235,7 +242,8 @@ class AppUi(ttk.Frame):
         colunas=[tree.heading(col,"text") for col in tree["columns"]]
 
         top_level=Toplevel()
-        # top_level.geometry('300x220')
+        top_level.geometry('480x360')
+        centralizar_ajanela(top_level)
         _fram=Frame(top_level,)
         _fram.grid(row=0,column=0,padx=10,sticky='nesw',pady=10)
         top_level.columnconfigure(0,weight=1)
@@ -251,63 +259,75 @@ class AppUi(ttk.Frame):
         invoice_var=StringVar(value=values[8])
         
         barcode_var=StringVar(value=values[2] )
+        def update_product( event):
+            product=Product (
+                        id=id_var.get(),
+                        description=_entry.get(),
+                        invoice=invoice.get(),
+                        newprice=newprice.get(),
+                        oldprice=oldprice.get(),
+                        supplier=provider.get(),
+                        code=code.get(),
+                        date=date.get(),
+                            )
+            print(f'ID DO PRODUTO={product}')
+            if self.repo.conn is not None:
+                print('Connection Has stabished...')
+                self.repo.update_product(product)
+                print(f"aLLReady:{product.description}")
+            else:
+                print('connection not found...')
+            print(product.description)
+            self.preloaded_db(self.db)
+            event.widget.master.master.destroy()
+        
          
         def get_input( root,label,variable=None,row=0,lcol=0,icol=1):
-            print(f'GET INPUT CALLED->{label}={variable.get()}')
+            value=variable.get()
+            print(f'GET INPUT CALLED->{label}={value}')
             _label=Label(root,text=label)
             _label.grid(row=row,column=lcol,sticky='w',padx=10,pady=10, )
-            entry=Entry(root,textvariable=variable)
+            entry=Entry(root,)
             entry.grid(row=row,column=icol,sticky='ew',pady=10)
+            entry.insert(0,value)
             root.columnconfigure(icol,weight=1)
             return entry
         
-        get_input(label='Barcode',root=_fram,variable=barcode_var,row=2,lcol=0,icol=1,)
-        get_input(label='Date',root=_fram,variable=date_var,row=1,lcol=0,icol=1, )
-        get_input(label='Description',root=_fram,variable=description_var,row=3,lcol=0,icol=1, )
-        get_input(label='Old Price',root=_fram,variable=old_price_var,row=4,lcol=0,icol=1, )
-        get_input(label='New Price',root=_fram,variable=new_price_var,row=5,lcol=0,icol=1, )
-        get_input(label='Provider',root=_fram,variable=supplier_var,row=6,lcol=0,icol=1, )
+        code=get_input(label='Barcode',root=_fram,variable=barcode_var,row=2,lcol=0,icol=1,)
+        date=get_input(label='Date',root=_fram,variable=date_var,row=1,lcol=0,icol=1, )
+        # desc=get_input(label='Description',root=_fram,variable=description_var,row=3,lcol=0,icol=1, )
+        oldprice=get_input(label='Old Price',root=_fram,variable=old_price_var,row=4,lcol=0,icol=1, )
+        newprice=get_input(label='New Price',root=_fram,variable=new_price_var,row=5,lcol=0,icol=1, )
+        provider=get_input(label='Provider',root=_fram,variable=supplier_var,row=6,lcol=0,icol=1, )
+        invoice=get_input(label='Invoice',root=_fram,variable=invoice_var,row=7,lcol=0,icol=1, )
+        
+        _label=Label(_fram,text='Descricao')
+        _label.grid(row=3,column=0,sticky='w',padx=10,pady=10, )
+        _entry=Entry(_fram,width=200)
+        _entry.grid(row=3,column=1,sticky='ew',pady=10,)
+        _entry.insert(0,description_var.get())
+        _fram.columnconfigure(1,weight=1)
 
 
 
         _btn_update=Button(_fram,text='Actualizar')
-        _btn_update.grid(row=8, column=0, pady=10,sticky='e',padx=10)
+        _btn_update.grid(row=9, column=0, pady=10,sticky='e',padx=10)
         _btn_delete=Button(_fram,text='Apagar')
-        _btn_delete.grid(row=8, column=1, pady=10,sticky='w')
+        _btn_delete.grid(row=9, column=1, pady=10,sticky='w')
 
-        product=Product (
-                    id=id_var.get(),
-                    description=description_var.get(),
-                    invoice=invoice_var.get(),
-                    newprice=new_price_var.get(),
-                    oldprice=old_price_var.get(),
-                    supplier=supplier_var.get(),
-                    code=barcode_var.get(),
-                    date=date_var.get(),
-                        )
-        _btn_update.bind('<Button-1>',lambda x:self.update_product(x,product))
-        _btn_delete.bind("<Button-1>",lambda x:self.delete_product(x,product))
+        
+        _btn_update.bind('<Button-1>',lambda x:update_product(x))
+        _btn_delete.bind("<Button-1>",lambda x:self.delete_product(x,id_var.get()))
         
         top_level.wait_window()
          
-    def update_product(self,event,product:Product):
-        print(f'ID DO PRODUTO={type(product.oldprice)}')
+        
+    def delete_product(self,event,id):
         if self.repo.conn is not None:
             print('Connection Has stabished...')
-            self.repo.update_product(product)
-            print(f"Ready:{product.description}")
+            self.repo.delete_product(id)
         else:
             print('connection not found...')
-        print(product.description)
-        self.preloaded_db(self.db)
-        event.widget.master.master.destroy()
-    def delete_product(self,event,product:Product):
-        if self.repo.conn is not None:
-            print('Connection Has stabished...')
-            self.repo.delete_product(product)
-        else:
-            print('connection not found...')
-        print(f"Deleted :{product.description}")
         self.preloaded_db(self.db)
         event.widget.master.master.destroy()
 
@@ -322,7 +342,11 @@ class AppUi(ttk.Frame):
         self._label_file_res.config(text=self.db)
         rows=self.repo.list_tables()
         print(rows)
-        data=self.repo.show_table_data(rows[0][0])
+        data=[]
+        try:
+            data=self.repo.show_table_data('products')
+        except Exception as e:
+            return
         self.tree.delete(*self.tree.get_children())
         for product in data:
             print(product)
@@ -340,6 +364,7 @@ class AppUi(ttk.Frame):
                 new_cost=product[7]
                 date=product[1]
                 invoice=product[2]
+                provider=product[3]
             except IndexError as e:
                 id=product[0]
                 barcode=product[2]
@@ -348,9 +373,10 @@ class AppUi(ttk.Frame):
                 new_cost=product[4]
                 date=product[5]
                 invoice=product[6]
+                provider='Vip Armazem Muxara'
             differ=round(float(new_cost)-float(old_cost))
             obs='SUBIU' if differ>0 else 'BAIXOU'
-            provider='Vip Armazem Muxara'
+            
             
             
             _tag='increased' if obs.endswith('SUBIU') else tag
@@ -369,8 +395,9 @@ class AppUi(ttk.Frame):
             
         self.db=askopenfilename(title='Select File',filetypes=[("Database Files", "*.db")])
         self.repo.connect_db(self.db)
-        self._label_file_res.config(text=file)
+        self._label_file_res.config(text=self.db)
         rows=self.repo.list_tables()
+        print(f'TABLES LOADES ARE : {rows}')
         data=self.repo.show_table_data(rows[0][0])
         self.tree.delete(*self.tree.get_children())
         for product in data:
@@ -410,10 +437,19 @@ class AppUi(ttk.Frame):
             self.tree.tag_configure('par', background= "#D4F1DD",font=("Calibri", 11, "bold"))
             self.tree.tag_configure('increased',foreground= "#EE2A08",font=("Calibri", 11, "bold"))
 
+def centralizar_ajanela(root):
+    root.update_idletasks()
+    width = root.winfo_width()
+    height = root.winfo_height()
+    x = (root.winfo_screenwidth() // 2) - (width // 2)
+    y = (root.winfo_screenheight() // 2) - (height // 2)
+    root.geometry(f'{width}x{height}+{x}+{y}')
 def main(path=None):
     _root=Tk()
     _root.title('Product Price Control')
+    
     _root.geometry('750x400')
+    centralizar_ajanela(_root)
     ui=AppUi(_root,db=path)
     ui.pack()
     _root.mainloop()
