@@ -264,7 +264,7 @@ class DocGenerator(UserControl):
             # on_click=lambda x:ProductRepository()._read_file('assets/mercearia.csv')
             # on_click=lambda x:asyncio.run(ApiTester(loader_value=self._progress_value,loader=self._loaderuix).run_compilation(x))
             #on_click=lambda x:asyncio.run(ApiTester(loader_value=self._progress_value,loader=self._loaderuix,datatable=DocGenerator._datatable_list).run_compilation(x))
-            on_click=lambda x:func(),
+            on_click=lambda x:func( ),
             )
         )
     
@@ -495,4 +495,4 @@ class DocGenerator(UserControl):
     def save_data(self):
         AppController.get_input_data()
     def get_old_files(self):
-        __💊 ="🕺" 
+        _ ="🕺💊" 

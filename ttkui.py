@@ -15,17 +15,7 @@ class Product :
     description: str 
     oldprice:str 
     newprice:str 
-    # def __init__(self,id, description,invoice,newprice,oldprice,supplier,code,date):
-    #     self.date=date
-    #     self.id=id,
-    #     self.invoice=invoice
-    #     self.supplier=supplier
-    #     self.code=code
-    #     self.description = description
-    #     self.oldprice=oldprice
-    #     self.newprice=newprice
-    # def __repr__(self) -> str:
-    #     return f"""'id:'{self.id},'Name:',Id{self.description}"""
+    
 class DbRepository:
     def __init__(self,) -> None:
         self.conn=None
@@ -153,6 +143,7 @@ class AppUi(ttk.Frame):
             print('DB FILE NOT FOUND')
 
     def init_components(self):
+        self.columns=('id',"date","barcode","description","old_cost","new_cost","difer","obs","invoice","provider",'user')
         _fram_seachbar=ttk.Frame(self)
         _fram_seachbar.grid(row=0,column=0,pady=10,sticky='ew',)
         self._label=ttk.Label(_fram_seachbar,text='Procurar',width=20)
@@ -160,39 +151,41 @@ class AppUi(ttk.Frame):
         self._input_search=ttk.Entry(_fram_seachbar, )
         self._input_search.grid(row=0,column=1,  padx=10,sticky='ew')
         
+        self._sort_input=ttk.Combobox(_fram_seachbar,values=self.columns)
+        self._sort_input.grid(row=0,column=2,padx=10,sticky='ew')
+        self._sort_input.current(0)
         # _fram_seachbar.rowconfigure(0,weight=1)
         _fram_seachbar.columnconfigure(1,weight=1)
         # _fram_seachbar.rowconfigure(0,weight=1)
         # _fram_seachbar.columnconfigure(0,weight=1)
-        self.columns=('id',"date","barcode","description","old_cost","new_cost","difer","obs","invoice","provider",'user')
-        self.tree=Treeview(self,columns=self.columns,show='headings',
+        self.tree=Treeview(self,columns=self.columns, show='headings',
                     displaycolumns=[1,2,3,4,5,6,7,8,9 ])
         self.tree.grid(row=1,column=0,columnspan=4,padx=10,sticky='NSEW')
         self.rowconfigure(1,weight=1)
         self.columnconfigure(0,weight=1)
-        self.tree.heading('#0',text='id',)
-        self.tree.heading('date',text='Date')
-        self.tree.heading('invoice',text='Invoice')
-        self.tree.heading('barcode',text='Barcode')
-        self.tree.heading("description",text="Description", )
-        self.tree.heading("old_cost",text='old cost')
-        self.tree.heading("new_cost",text='New cost')
-        self.tree.heading('difer',text='Difer')
-        self.tree.heading('obs',text='Obs')
-        self.tree.heading('provider',text='Provider')
+        self.tree.heading('#0',text='ID',)
+        self.tree.heading('date',text='DATE')
+        self.tree.heading('invoice',text='INVOICE')
+        self.tree.heading('barcode',text='BARCODE')
+        self.tree.heading("description",text="DESCRIPTION", )
+        self.tree.heading("old_cost",text='OLD COST')
+        self.tree.heading("new_cost",text='NEW COST')
+        self.tree.heading('difer',text='DIFF')
+        self.tree.heading('obs',text='OBS')
+        self.tree.heading('provider',text='SUPPLIER')
         self.tree.heading('user',text='Entry By')
         
         # Configurar as larguras das colunas
         # tree.column("#0", width=10)
         # tree.column("description", width=100)
-        self.tree.column('#0', )
+        self.tree.column('#0',width=5 )
         self.tree.column('date',width=5 )
         self.tree.column('invoice',width=5 )
         self.tree.column('barcode',width=10)
-        self.tree.column("description",width=200 , )
-        self.tree.column("old_cost",width=10 )
-        self.tree.column("new_cost",width=10 )
-        self.tree.column('difer',width=5 )
+        self.tree.column("description",width=220 , )
+        self.tree.column("old_cost",width=20 )
+        self.tree.column("new_cost",width=20 )
+        self.tree.column('difer',width=10 )
         self.tree.column('obs', width=5)
         self.tree.column('provider',width=10 )
         self.tree.column('user',width=5 )
@@ -227,7 +220,17 @@ class AppUi(ttk.Frame):
         # Label for db/res
         self._label_file_res=ttk.Label(self,text='file not Loaded',padding=20)
         self._label_file_res.grid(row=4,sticky='ew', )
-
+        
+        self.treeview_sort_by_column(self.tree, 0, False)
+    def treeview_sort_by_column(self,treeview,column,descending):
+        """sort treeview contents when a column header is clicked on"""
+        # grab values to sort
+        data = [(treeview.set(child, column), child) \
+            for child in treeview.get_children('')]
+        data.sort(reverse=descending)
+        for ix, item in enumerate(data):
+            treeview.move(item[1], '', ix)
+        print('******************* sorted **************')
 
     def open_popup_editor(self,event):
         _tree_colunas=('id',
@@ -383,8 +386,10 @@ class AppUi(ttk.Frame):
             prod=(id,date,barcode,descriptio,old_cost,new_cost,differ,obs,invoice,provider)
           
             self.tree.insert('', 'end', values=prod, tags=(_tag,tag))
-            self.tree.tag_configure('impar', background= '#ffffff',font=("Calibri", 11, "bold"))
-            self.tree.tag_configure('par', background= "#D4F1DD",font=("Calibri", 11, "bold"))
+            self.tree.tag_configure('impar', background= '#e6e8e6',  ) #if light
+            # self.tree.tag_configure('impar', background= '#242423', ) #if dark
+
+            # self.tree.tag_configure('par', background= "#D4F1DD",font=("Calibri", 11, "bold"))
             self.tree.tag_configure('increased',foreground= "#EE2A08",font=("Calibri", 11, "bold"))
 
     def load_file(self,event):
@@ -447,7 +452,17 @@ def centralizar_ajanela(root):
 def main(path=None):
     _root=Tk()
     _root.title('Product Price Control')
-    
+     # Simply set the theme
+    # _root.tk.call("source", "azure.tcl")
+    # _root.tk.call("set_theme", "light")
+    # Create a style
+    style = ttk.Style(_root)
+    _root.update()
+    # Import the tcl file
+    _root.tk.call("source", "forest-dark.tcl")
+    _root.tk.call("source", "forest-light.tcl")
+    # Set the theme with the theme_use method
+    style.theme_use("forest-light")
     _root.geometry('750x400')
     centralizar_ajanela(_root)
     ui=AppUi(_root,db=path)
