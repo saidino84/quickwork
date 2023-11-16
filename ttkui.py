@@ -1,9 +1,11 @@
-import os
+import os,re
 from tkinter import StringVar, Tk, ttk,Toplevel
 from tkinter.ttk import *
 import sqlite3 as sq
 from tkinter.filedialog import askopenfilename
 from dataclasses import dataclass
+from typing import List
+from tkinter.messagebox import showinfo
 
 @dataclass
 class Product :
@@ -38,21 +40,32 @@ class DbRepository:
                 print(f'ERRO AO ENCONTRAR TABELAS {e}')
         else:
             print('[+] PLEASE CONENCT FIRSR OF ALL')  
-    def show_table_data(self,tabela,data=None):
+    def show_table_data(self,tabela,category=None,search_v=None) :
+        message=None
         if self.conn is not None:
             try:
                 cursor =self.conn.cursor()
-                if(data is not None):
-                    cursor.execute(f'SELECT * FROM {tabela} WHERE date="29/09/2023";') 
+                if(search_v and category is not None):
+                    try:
+                        cursor.execute(f"SELECT * FROM {tabela} WHERE {category}='{search_v}';") 
+                    except sq.Error as qlerror:
+                        print("[SQLERROR] sqlerror")
+                        message='ERROR'
+                        # cursor.execute(f'SELECT * FROM {tabela} ;') 
                 else:
                     cursor.execute(f'SELECT * FROM {tabela} ;') 
                 dados=cursor.fetchall()
                 print("Data feched ....")
+                if len(dados)<1:
+                    print('FETCHING AGAIN....')
+                    cursor.execute(f'SELECT * FROM {tabela} ;') 
+                    dados=cursor.fetchall()
+                    message='ERROR: Dados nao encontrados !'
                 
                 cursor.close()
-                return dados
+                return (message,dados)
             except sq.Error as e:
-                print('ERRO AO IMPRIMIR DADOS')
+                print( '[ERROR in =[DbRepository().show_table_data(self,tabela,date=Non)] \n ERRO AO IMPRIMIR DADOS ERR:  ')
                 return []
     def list_columns(self, table_name):
         if self.conn is not None:
@@ -61,6 +74,7 @@ class DbRepository:
                 cursor.execute(f"PRAGMA table_info({table_name});")
                 columns=cursor.fetchall()
                 cursor.close()
+                print(columns)
                 return columns
             except sq.Error as e:
                 print(f'ERRO AO ENCONTRAR COLUNAS {e}')
@@ -91,7 +105,8 @@ class DbRepository:
         if self.conn is not None:
             cursor=self.conn.cursor()
             update_stmt=  f''' UPDATE products SET date =   "{product.date}", 
-            invoice={product.invoice}, oldprice={product.oldprice}, description = " {product.description} ", supplier = "{product.supplier}", 
+            invoice={product.invoice}, oldprice={product.oldprice}, description = " {product.description} ",
+            supplier = "{product.supplier}", 
             newprice={product.newprice}, code={product.code}  WHERE id={product.id[0]};'''
     
             print(f'UCTUALIZANDO PRODUCT ID: {product.id[0]}')
@@ -151,9 +166,11 @@ class AppUi(ttk.Frame):
         self._input_search=ttk.Entry(_fram_seachbar, )
         self._input_search.grid(row=0,column=1,  padx=10,sticky='ew')
         
-        self._sort_input=ttk.Combobox(_fram_seachbar,values=self.columns)
-        self._sort_input.grid(row=0,column=2,padx=10,sticky='ew')
-        self._sort_input.current(0)
+        self._sort_comboBox=ttk.Combobox(_fram_seachbar,values=list(x.capitalize() for x in ['invoice','oldprice','supplier','newprice','description','code','date']))
+        self._sort_comboBox.grid(row=0,column=2,padx=10,sticky='ew')
+        self._sort_comboBox.current(0)
+
+        self._input_search.bind('<Return>', self.treeview_sort_product_by_column)
         # _fram_seachbar.rowconfigure(0,weight=1)
         _fram_seachbar.columnconfigure(1,weight=1)
         # _fram_seachbar.rowconfigure(0,weight=1)
@@ -221,16 +238,32 @@ class AppUi(ttk.Frame):
         self._label_file_res=ttk.Label(self,text='file not Loaded',padding=20)
         self._label_file_res.grid(row=4,sticky='ew', )
         
-        self.treeview_sort_by_column(self.tree, 0, False)
-    def treeview_sort_by_column(self,treeview,column,descending):
-        """sort treeview contents when a column header is clicked on"""
-        # grab values to sort
-        data = [(treeview.set(child, column), child) \
-            for child in treeview.get_children('')]
-        data.sort(reverse=descending)
-        for ix, item in enumerate(data):
-            treeview.move(item[1], '', ix)
-        print('******************* sorted **************')
+    def treeview_sort_product_by_column(self,event):
+        search_value=self._input_search.get()
+        category=self._sort_comboBox.get().lower()
+        print(category," Has been chossen !")
+        if category.__contains__('description'):
+            print('NOT ALOWED CATEGORY')
+            return self.deep_query_by_description(value=search_value)
+        message,produts=self.repo.show_table_data(tabela='products',category=category,search_v=search_value)
+        self.update_tree(products=produts)
+        if message:
+            showinfo(title='Falha Na Busca', message=message)
+       
+    def deep_query_by_description(self,value=None):
+        products=[]
+        message,self.products=message,self.products=self.repo.show_table_data('products')
+        for product in self.products:
+            found=re.search(value,product[5],re.IGNORECASE)
+            if found is not None:
+                products.append(product)
+                print(product)
+                self.update_tree(products=products)
+        if len(products) <0:
+            showinfo(title='Name Not Found',message='Produto Nao encontrado')
+            # return self.pr
+        return products
+        
 
     def open_popup_editor(self,event):
         _tree_colunas=('id',
@@ -347,11 +380,11 @@ class AppUi(ttk.Frame):
         print(rows)
         data=[]
         try:
-            data=self.repo.show_table_data('products')
+            message,self.products=self.repo.show_table_data('products')
         except Exception as e:
             return
         self.tree.delete(*self.tree.get_children())
-        for product in data:
+        for product in self.products:
             print(product)
             tag='impar' if product[0]%2==0 else 'par'
             id=product[0]
@@ -403,9 +436,9 @@ class AppUi(ttk.Frame):
         self._label_file_res.config(text=self.db)
         rows=self.repo.list_tables()
         print(f'TABLES LOADES ARE : {rows}')
-        data=self.repo.show_table_data(rows[0][0])
+        message,self.products=self.repo.show_table_data(rows[0][0])
         self.tree.delete(*self.tree.get_children())
-        for product in data:
+        for product in self.products:
             # print(product)
             tag='impar' if product[0]%2==0 else 'par'
             id=product[0]
@@ -441,6 +474,49 @@ class AppUi(ttk.Frame):
             self.tree.tag_configure('impar', background= '#ffffff',font=("Calibri", 11, "bold"))
             self.tree.tag_configure('par', background= "#D4F1DD",font=("Calibri", 11, "bold"))
             self.tree.tag_configure('increased',foreground= "#EE2A08",font=("Calibri", 11, "bold"))
+    def update_tree(self,products):
+        self.products=products
+        if self.repo is None:
+            print('NO CONNECTION FOUND')
+            return
+        print(f"[COLUMNS]=>{self.repo.list_columns('products')}")
+        self.tree.delete(*self.tree.get_children())
+        for product in  self.products:
+            tag='impar' if product[0]%2==0 else 'par'
+            id=product[0]
+            barcode= None
+            descriptio=None
+            old_cost=0
+            new_cost=0
+            try:
+                id=product[0]
+                barcode=product[4]
+                descriptio=product[5]
+                old_cost=product[6]
+                new_cost=product[7]
+                date=product[1]
+                invoice=product[2]
+            except IndexError as e:
+                id=product[0]
+                barcode=product[2]
+                descriptio=product[1]
+                old_cost=product[3]
+                new_cost=product[4]
+                date=product[5]
+                invoice=product[6]
+            differ=round(float(new_cost)-float(old_cost))
+            obs='SUBIU' if differ>0 else 'BAIXOU'
+            provider='Vip Armazem Muxara'
+
+            _tag='increased' if obs.endswith('SUBIU') else tag
+            prod=(id,date,barcode,descriptio,old_cost,new_cost,differ,obs,invoice,provider)
+          
+            self.tree.insert('', 'end', values=prod, tags=(_tag,tag))
+            self.tree.tag_configure('impar', background= '#ffffff',font=("Calibri", 11, "bold"))
+            self.tree.tag_configure('par', background= "#D4F1DD",font=("Calibri", 11, "bold"))
+            self.tree.tag_configure('increased',foreground= "#EE2A08",font=("Calibri", 11, "bold"))
+
+
 
 def centralizar_ajanela(root):
     root.update_idletasks()

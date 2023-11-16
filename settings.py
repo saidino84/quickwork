@@ -1,3 +1,4 @@
+from plyer import notification
 from json import load,dump
 import os
 
@@ -10,6 +11,14 @@ import os
 #     SECRET_KEY: str
 #     ALGORITHM: str
 #     ACCESS_TOKEN_EXPIRE_MINUTES: int
+def send_notiication(title,message):
+
+        notification.notify(
+            title=title,
+            message=message,
+            app_name="Price Tag",
+            timeout=10
+        )
 
 class Utils:
     @staticmethod
@@ -44,17 +53,9 @@ class Utils:
         with open(os.path.join('settings','settings.json'),'w+') as settigs:
             dump(dados,settigs)
             print('provider created')
+        send_notiication('SETTINGS',"Provides Has been loaded sucessfully")
 
     
-    def send_notiication(title,message):
-        from plyer import notification
-
-        notification.notify(
-            title=title,
-            message=message,
-            app_name="Price Tag",
-            timeout=10
-        )
-
+   
         
             
