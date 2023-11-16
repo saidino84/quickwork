@@ -41,12 +41,52 @@ class Utils:
     @staticmethod
     def create_if_not_exist():
         providers=[
-                "VIP ARMAZEM MUXARA",
-                "VIP MONTEPUEZ",
-                "MOZBIFE",
-                "CANAS",
-                "GENIFA"
-                    ]
+        "VIP ARM. MUXARA",
+        "JACARANDA MONAPO LDA",
+        "AELIZ COMERCIAL",
+        "TERRA MAR",
+        "VIP MONTEPUEZ",
+        "GOLDEN POWER REPRESENTACOES",
+        "J.J.E COMERCIO",
+        "HANDLING",
+        "Titos Chichava",
+        "INSELTEC SOLUTIONS",
+        "BUCHANI",
+        "Builders Warehouse",
+        "Cha de Mangoma",
+        " ADRIANO ARLINDO ",
+        "AGRO-SULAHA FARMS LDA",
+        "MOZBIFE",
+        "RCL-RAHI COMERCIAL",
+        "Casa Das Loiças",
+        "Momade Bica Comercial",
+        "DESSE CAMARA",
+        "SOCOAL",
+        "VIP WAREHOUSE CHAMANCULO",
+        "OASIS MOÇAMBIQUE, LDA",
+        "GENNY SALGADOS",
+        "SALLU TRADING",
+        "LOGOS Industrias Lda",
+        "DESSE CAMARA",
+        "PASTELARIA FLOR",
+        "VIP NACALA",
+        "VIP NAMPULA",
+        "Niri Nkayi (Menteigas de amendoim)",
+        "Marin Trading",
+        "UNIBASMA",
+        "IOCOMAS FARM",
+        "FAZENDA OPHENTANA",
+        "Vip Maputo Armazem",
+        "Higest Moçambique , Lda",
+        "Jephta Kasusu Wayella",
+        "NECIFA LDA",
+        "CANAS",
+        "NOVO HORIZONTES",
+        "TROPIGALIA",
+        "Dona Julia",
+        "VIP FASHION",
+        "Kratos Empire , Lda"
+    ]
         dados={"providers":providers}
         if(not os.path.isdir('settings')):
             os.makedirs('settings')
